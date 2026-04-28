@@ -98,49 +98,52 @@ const SecretNote = ({ isOpen, onClose, nickname }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.8, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-[#fffaf0] p-8 sm:p-12 rounded-[2rem] shadow-2xl border-t-8 border-pink-400"
-          >
-            <button 
-              onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-pink-500 transition-colors"
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm overflow-y-auto py-10 px-4 sm:px-6">
+          <div className="min-h-full flex items-center justify-center">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-lg bg-[#fffaf0] p-8 sm:p-12 rounded-[2rem] shadow-2xl border-t-8 border-pink-400"
+              onClick={(e) => e.stopPropagation()}
             >
-              <X size={24} />
-            </button>
-            
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 text-pink-500">
-                <Heart fill="currentColor" size={20} />
-                <span className="font-bold tracking-widest uppercase text-sm">Một chút tâm tư...</span>
-              </div>
+              <button 
+                onClick={onClose}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-pink-500 transition-colors z-10"
+              >
+                <X size={24} />
+              </button>
               
-              <div className="space-y-4 text-slate-700 leading-relaxed  text-lg italic">
-                <p>Chào Huyền,</p>
-                <p>
-                  Anh làm cái “mèo máy” nhỏ này đơn giản chỉ vì nghĩ rằng: Biết đâu có lúc em ghé vào, thấy vui hơn một chút.
-                </p>
-                <p>
-                  Không cần lúc nào cũng phải vui đâu, chỉ cần đôi khi có một góc nhỏ để nghỉ một xíu là được rồi.
-                </p>
-                <p>
-                  Hy vọng mỗi lần em mở nó lên, sẽ có thêm một chút năng lượng tích cực, hoặc ít nhất là một cái mỉm cười nhẹ nhẹ.
-                  Cảm ơn em đã dành thời gian đọc đến đây.
-                </p>
-                <p>
-                  Chúc {nickname || 'em'} hôm nay (và cả những ngày sau nữa) luôn có thật nhiều điều dễ thương và tỏa sáng như ánh mặt trời nhỏ nhé! ☀️
-                </p>
-              </div>
+              <div className="space-y-6">
+                <div className="flex items-center gap-3 text-pink-500">
+                  <Heart fill="currentColor" size={20} />
+                  <span className="font-bold tracking-widest uppercase text-sm">Một chút tâm tư...</span>
+                </div>
+                
+                <div className="space-y-4 text-slate-700 leading-relaxed text-lg italic">
+                  <p>Chào Huyền,</p>
+                  <p>
+                    Anh làm cái “mèo máy” nhỏ này đơn giản chỉ vì nghĩ rằng: Biết đâu có lúc em ghé vào, thấy vui hơn một chút.
+                  </p>
+                  <p>
+                    Không cần lúc nào cũng phải vui đâu, chỉ cần đôi khi có một góc nhỏ để nghỉ một xíu là được rồi.
+                  </p>
+                  <p>
+                    Hy vọng mỗi lần em mở nó lên, sẽ có thêm một chút năng lượng tích cực, hoặc ít nhất là một cái mỉm cười nhẹ nhẹ.
+                    Cảm ơn em đã dành thời gian đọc đến đây.
+                  </p>
+                  <p>
+                    Chúc {nickname || 'em'} hôm nay (và cả những ngày sau nữa) luôn có thật nhiều điều dễ thương và tỏa sáng như ánh mặt trời nhỏ nhé! ☀️
+                  </p>
+                </div>
 
-              <div className="pt-6 border-t border-pink-100 flex justify-between items-center text-slate-400 text-xs uppercase tracking-widest font-bold">
-                <span>Mèo máy của {nickname || 'em'}</span>
-                <Sparkles size={16} className="text-yellow-400" />
+                <div className="pt-6 border-t border-pink-100 flex justify-between items-center text-slate-400 text-xs uppercase tracking-widest font-bold">
+                  <span>Mèo máy của {nickname || 'em'}</span>
+                  <Sparkles size={16} className="text-yellow-400" />
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       )}
     </AnimatePresence>
