@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Fingerprint, Sparkles, Heart, Star, Cloud, ArrowRight, ChevronLeft } from 'lucide-react';
+import AstroCat from './AstroCat';
 
 const FloatingIcon = ({ children, delay = 0, x = 0, y = 0 }) => (
   <motion.div
@@ -30,6 +31,8 @@ const SecurityGate = ({ onComplete }) => {
     favoriteFood: '',
     dislike: ''
   });
+  const [mascotState, setMascotState] = useState('idle');
+  const [bubbleText, setBubbleText] = useState("Chào em! Anh đợi hơi lâu rồi đấy.");
 
   const steps = [
     {
@@ -38,7 +41,8 @@ const SecurityGate = ({ onComplete }) => {
       label: "Mật danh đáng yêu",
       placeholder: "Nhập biệt danh của em...",
       icon: <Heart className="w-10 h-10 text-pink-500" />,
-      type: "text"
+      type: "text",
+      mascotTalk: "Tên xinh thế này chắc chắn chủ nhân cũng xinh lắm!"
     },
     {
       id: 'birthday',
@@ -46,7 +50,8 @@ const SecurityGate = ({ onComplete }) => {
       label: "Ngày sinh nhật",
       placeholder: "",
       icon: <Star className="w-10 h-10 text-yellow-500" />,
-      type: "date"
+      type: "date",
+      mascotTalk: "Ngày này chắc chắn là ngày đẹp nhất năm rồi."
     },
     {
       id: 'favoriteFood',
@@ -54,7 +59,8 @@ const SecurityGate = ({ onComplete }) => {
       label: "Nguồn nhiên liệu ưa thích",
       placeholder: "Trà sữa, kem, hay là... anh?",
       icon: <Cloud className="w-10 h-10 text-blue-400" />,
-      type: "text"
+      type: "text",
+      mascotTalk: "Món này ngon cực! Ghi vào sổ tay để sau này anh mua cho."
     },
     {
       id: 'dislike',
@@ -62,9 +68,20 @@ const SecurityGate = ({ onComplete }) => {
       label: "Tác nhân gây biến đổi khí hậu",
       placeholder: "Nhắn tin chậm, bị bỏ rơi...",
       icon: <ShieldCheck className="w-10 h-10 text-indigo-500" />,
-      type: "text"
+      type: "text",
+      mascotTalk: "Ối sợ thế! Anh hứa sẽ không bao giờ làm thế với em đâu."
     }
   ];
+
+  useEffect(() => {
+    if (formData[steps[currentStep].id]) {
+      setMascotState('happy');
+      setBubbleText(steps[currentStep].mascotTalk);
+    } else {
+      setMascotState('thinking');
+      setBubbleText("Đang đợi em nhập nè...");
+    }
+  }, [formData[steps[currentStep].id], currentStep]);
 
   const handleNext = () => {
     if (formData[steps[currentStep].id]) {
@@ -81,19 +98,39 @@ const SecurityGate = ({ onComplete }) => {
   };
 
   return (
-    <div className="relative min-h-[500px] flex items-center justify-center py-10">
-      {/* Floating Elements Around */}
-      <FloatingIcon x="10%" y="20%" delay={0}><Heart fill="currentColor" /></FloatingIcon>
-      <FloatingIcon x="85%" y="15%" delay={1}><Star fill="currentColor" /></FloatingIcon>
-      <FloatingIcon x="15%" y="70%" delay={2}><Cloud fill="currentColor" /></FloatingIcon>
-      <FloatingIcon x="80%" y="80%" delay={0.5}><Sparkles fill="currentColor" /></FloatingIcon>
-      <FloatingIcon x="50%" y="5%" delay={1.5}><Heart fill="currentColor" className="w-4 h-4" /></FloatingIcon>
+    <div className="relative min-h-[600px] flex flex-col items-center justify-center py-10 px-4">
+      {/* Floating Elements */}
+      <FloatingIcon x="5%" y="15%" delay={0}><Heart fill="currentColor" /></FloatingIcon>
+      <FloatingIcon x="90%" y="10%" delay={1}><Star fill="currentColor" /></FloatingIcon>
+      <FloatingIcon x="10%" y="80%" delay={2}><Cloud fill="currentColor" /></FloatingIcon>
+      <FloatingIcon x="85%" y="75%" delay={0.5}><Sparkles fill="currentColor" /></FloatingIcon>
+
+      {/* Mascot Section */}
+      <div className="relative mb-6">
+        <motion.div 
+          animate={{ y: [0, -10, 0] }}
+          transition={{ repeat: Infinity, duration: 4 }}
+          className="relative"
+        >
+          <AstroCat state={mascotState} className="w-32 h-32" />
+          
+          {/* Speech Bubble */}
+          <motion.div
+            key={bubbleText}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="absolute -top-12 -right-32 w-48 bg-white p-3 rounded-2xl rounded-bl-none shadow-lg border border-pink-100 text-xs font-medium text-pink-600 italic leading-relaxed"
+          >
+            {bubbleText}
+            <div className="absolute -bottom-2 left-0 w-4 h-4 bg-white border-l border-b border-pink-100 rotate-45" />
+          </motion.div>
+        </motion.div>
+      </div>
 
       <motion.div 
         layout
         className="w-full max-w-md glass-card rounded-[2.5rem] p-8 relative z-10 overflow-hidden"
       >
-        {/* Progress Bar */}
         <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100/50">
           <motion.div 
             initial={{ width: 0 }}
@@ -108,17 +145,9 @@ const SecurityGate = ({ onComplete }) => {
             initial={{ x: 50, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -50, opacity: 0 }}
-            transition={{ duration: 0.3 }}
             className="space-y-8"
           >
-            <div className="flex flex-col items-center text-center gap-4">
-              <motion.div 
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="p-5 bg-white rounded-3xl shadow-sm border border-pink-50"
-              >
-                {steps[currentStep].icon}
-              </motion.div>
+            <div className="text-center">
               <h2 className="text-2xl font-bold text-slate-800 leading-tight">
                 {steps[currentStep].question}
               </h2>
@@ -136,7 +165,7 @@ const SecurityGate = ({ onComplete }) => {
                   onChange={(e) => setFormData({ ...formData, [steps[currentStep].id]: e.target.value })}
                   onKeyDown={(e) => e.key === 'Enter' && handleNext()}
                   placeholder={steps[currentStep].placeholder}
-                  className="w-full px-6 py-4 bg-white/50 border-2 border-slate-100 rounded-2xl focus:border-pink-300 focus:ring-4 focus:ring-pink-100 outline-none transition-all text-lg font-medium text-slate-700"
+                  className="w-full px-6 py-4 bg-white/50 border-2 border-slate-100 rounded-2xl focus:border-pink-300 focus:ring-4 focus:ring-pink-100 outline-none transition-all text-lg font-medium text-slate-700 placeholder:text-slate-300"
                 />
               </div>
 
@@ -154,27 +183,13 @@ const SecurityGate = ({ onComplete }) => {
                   disabled={!formData[steps[currentStep].id]}
                   className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none transition-all"
                 >
-                  {currentStep === steps.length - 1 ? (
-                    <>
-                      <Fingerprint className="w-5 h-5" />
-                      XÁC MINH NGAY
-                    </>
-                  ) : (
-                    <>
-                      TIẾP TỤC
-                      <ArrowRight className="w-5 h-5" />
-                    </>
-                  )}
+                  {currentStep === steps.length - 1 ? "XÁC MINH NGAY" : "TIẾP TỤC"}
+                  <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
           </motion.div>
         </AnimatePresence>
-
-        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400 uppercase tracking-[0.2em]">
-          <span>Step {currentStep + 1} of {steps.length}</span>
-          <span>Security Level: High</span>
-        </div>
       </motion.div>
     </div>
   );
