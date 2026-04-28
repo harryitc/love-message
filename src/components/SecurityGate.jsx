@@ -139,9 +139,9 @@ const SecurityGate = ({ onComplete, playSFX }) => {
     },
     {
       id: 'birthday',
-      question: "Ngày nào là ngày vũ trụ trở nên đặc biệt hơn vì có em?",
+      question: "Ngày nào khiến thế giới của em đặc biệt hơn?",
       label: "Ngày sinh nhật của em",
-      placeholder: "",
+      placeholder: "xx/xx/2007",
       icon: <CuteStar />,
       mascotTalk: "Молодец! (Giỏi lắm!) Mèo máy sẽ lưu lại để cùng em đón những điều tuyệt vời nhé."
     },

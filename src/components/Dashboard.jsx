@@ -118,20 +118,20 @@ const SecretNote = ({ isOpen, onClose, nickname }) => {
                 <span className="font-bold tracking-widest uppercase text-sm">Một chút tâm tư...</span>
               </div>
               
-              <div className="space-y-4 text-slate-700 leading-relaxed font-serif text-lg italic">
-                <p>Chào {nickname || 'em'},</p>
+              <div className="space-y-4 text-slate-700 leading-relaxed  text-lg italic">
+                <p>Chào Huyền,</p>
                 <p>
-                  Mèo máy được tạo ra với một sứ mệnh duy nhất: Mong là mỗi khi em truy cập vào đây, 
-                  những mệt mỏi ngoài kia sẽ tạm dừng lại sau cánh cửa.
+                  Anh làm cái “mèo máy” nhỏ này đơn giản chỉ vì nghĩ rằng: Biết đâu có lúc em ghé vào, thấy vui hơn một chút.
                 </p>
                 <p>
-                  Dù là lúc vui hay những khi bầu trời trong em hơi âm u, hy vọng món quà nhỏ này 
-                  có thể mang lại cho em một nụ cười, một chút năng lượng tích cực, hoặc đơn giản 
-                  là một sự đồng cảm nhẹ nhàng.
+                  Không cần lúc nào cũng phải vui đâu, chỉ cần đôi khi có một góc nhỏ để nghỉ một xíu là được rồi.
                 </p>
                 <p>
-                  Cảm ơn em đã xuất hiện và làm cho thế giới này trở nên đẹp đẽ hơn. 
-                  Chúc {nickname || 'em'} luôn tỏa sáng như ánh mặt trời nhỏ nhé! ☀️
+                  Hy vọng mỗi lần em mở nó lên, sẽ có thêm một chút năng lượng tích cực, hoặc ít nhất là một cái mỉm cười nhẹ nhẹ.
+                  Cảm ơn em đã dành thời gian đọc đến đây.
+                </p>
+                <p>
+                  Chúc {nickname || 'em'} hôm nay (và cả những ngày sau nữa) luôn có thật nhiều điều dễ thương và tỏa sáng như ánh mặt trời nhỏ nhé! ☀️
                 </p>
               </div>
 
