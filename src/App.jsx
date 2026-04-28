@@ -8,11 +8,26 @@ import useSound from './hooks/useSound';
 import SoundControl from './components/SoundControl';
 
 function App() {
-  const [step, setStep] = useState('welcome'); // welcome, gate, calibration, dashboard
-  const [userData, setUserData] = useState(null);
+  const [step, setStep] = useState(() => {
+    const savedStep = localStorage.getItem('appStep');
+    // Chỉ cho phép vào dashboard nếu đã hoàn thành toàn bộ các bước trước đó, ngược lại quay về welcome
+    return savedStep === 'dashboard' ? 'dashboard' : 'welcome';
+  });
+  const [userData, setUserData] = useState(() => {
+    const saved = localStorage.getItem('userData');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [isDemo, setIsDemo] = useState(false);
   
   const { isMuted, play, playBGM, toggleMute } = useSound();
+
+  // Lưu trạng thái vào localStorage khi thay đổi
+  useEffect(() => {
+    localStorage.setItem('appStep', step);
+    if (userData) {
+      localStorage.setItem('userData', JSON.stringify(userData));
+    }
+  }, [step, userData]);
 
   useEffect(() => {
     // Kiểm tra nếu URL có chứa /demo
@@ -42,16 +57,29 @@ function App() {
     setStep('dashboard');
   };
 
+  const resetApp = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   if (isDemo) {
     return (
       <div className="min-h-screen bg-[#f8fafc] p-4 flex items-center justify-center">
         <MascotDemo />
-        <button 
-          onClick={() => { window.location.pathname = '/'; }}
-          className="fixed bottom-10 px-6 py-2 bg-slate-800 text-white rounded-full text-sm font-bold shadow-lg"
-        >
-          QUAY LẠI TRANG CHỦ
-        </button>
+        <div className="fixed bottom-10 flex gap-4">
+          <button 
+            onClick={() => { window.location.pathname = '/'; }}
+            className="px-6 py-2 bg-slate-800 text-white rounded-full text-sm font-bold shadow-lg"
+          >
+            QUAY LẠI TRANG CHỦ
+          </button>
+          <button 
+            onClick={resetApp}
+            className="px-6 py-2 bg-red-500 text-white rounded-full text-sm font-bold shadow-lg"
+          >
+            RESET DỮ LIỆU
+          </button>
+        </div>
       </div>
     );
   }
@@ -80,7 +108,7 @@ function App() {
         )}
 
         {step === 'dashboard' && (
-          <Dashboard userData={userData} playSFX={play} />
+          <Dashboard userData={userData} playSFX={play} onReset={resetApp} />
         )}
       </main>
     </div>
