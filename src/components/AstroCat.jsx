@@ -1,18 +1,22 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const AstroCat = ({ state = 'idle', className = "" }) => {
+const AstroCat = ({ state = 'idle', className = "", mousePos = { x: 0.5, y: 0.5 } }) => {
+  // Tính toán độ lệch của con ngươi (pupil) - giới hạn trong khoảng nhỏ
+  const lookX = (mousePos.x - 0.5) * 12; 
+  const lookY = (mousePos.y - 0.5) * 12;
+
   const eyeVariants = {
     idle: { scaleY: 1 },
-    thinking: { x: [0, 5, -5, 0], transition: { repeat: Infinity, duration: 2 } },
+    thinking: { x: [0, 2, -2, 0], transition: { repeat: Infinity, duration: 2 } },
     happy: { scaleY: 0.1, transition: { duration: 0.1 } },
-    shook: { scale: 1.5 },
+    shook: { scale: 1.4 },
   };
 
   return (
     <div className={`relative ${className}`}>
       <motion.svg
-        viewBox="0 0 200 200"
+        viewBox="0 -50 200 250"
         initial="idle"
         animate={state}
         className="w-full h-full"
@@ -48,23 +52,24 @@ const AstroCat = ({ state = 'idle', className = "" }) => {
         />
 
         {/* Mắt trái */}
-        <motion.ellipse
-          cx="75"
-          cy="90"
-          rx="6"
-          ry="8"
-          fill="#333"
-          variants={eyeVariants}
-        />
+        <g transform="translate(75, 90)">
+          <ellipse cx="0" cy="0" rx="10" ry="12" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="1" />
+          <motion.ellipse
+            animate={{ x: lookX, y: lookY }}
+            cx="0" cy="0" rx="5" ry="6" fill="#333"
+            variants={eyeVariants}
+          />
+        </g>
+
         {/* Mắt phải */}
-        <motion.ellipse
-          cx="125"
-          cy="90"
-          rx="6"
-          ry="8"
-          fill="#333"
-          variants={eyeVariants}
-        />
+        <g transform="translate(125, 90)">
+          <ellipse cx="0" cy="0" rx="10" ry="12" fill="#F8FAFC" stroke="#E2E8F0" strokeWidth="1" />
+          <motion.ellipse
+            animate={{ x: lookX, y: lookY }}
+            cx="0" cy="0" rx="5" ry="6" fill="#333"
+            variants={eyeVariants}
+          />
+        </g>
 
         {/* Mũi hồng nhỏ */}
         <circle cx="100" cy="105" r="4" fill="#FF99AA" />
@@ -78,13 +83,14 @@ const AstroCat = ({ state = 'idle', className = "" }) => {
           strokeLinecap="round"
         />
 
-        {/* Hiệu ứng Heart khi Happy */}
+        {/* Hiệu ứng Heart khi Happy - Cập nhật path mới chuẩn hơn */}
         {state === 'happy' && (
           <motion.path
             initial={{ scale: 0, opacity: 0, y: 0 }}
-            animate={{ scale: 1.2, opacity: 1, y: -40 }}
-            d="M100 60 Q110 50 120 60 T100 80 T80 60 T100 60"
+            animate={{ scale: 0.6, opacity: 1, y: -50 }}
+            d="M50 85 C20 65 5 45 5 25 A 22 22 0 0 1 49 25 A 22 22 0 0 1 95 25 C 95 45 80 65 50 85 Z"
             fill="#FF4466"
+            style={{ x: 50, y: -20, originX: "50px", originY: "85px" }}
           />
         )}
       </motion.svg>

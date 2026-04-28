@@ -1,16 +1,37 @@
-# React + Vite
+# 🌈 Máy Dự báo Thời tiết Tâm trạng (Mood Weather Station)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dự án website tương tác vui nhộn, hài hước dành riêng cho việc tán tỉnh và thấu hiểu "em gái nhỏ".
 
-Currently, two official plugins are available:
+## 🚀 Tính năng hiện tại (V2 - Kawaii Edition)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. Onboarding "Tối Mật"
+- Giao diện **Security Gate** xác minh danh tính qua 4 bước: Biệt danh, Ngày sinh, Món ăn yêu thích, Điều ghét nhất.
+- Câu hỏi được lồng ghép hài hước, tạo cảm giác thân thiện.
 
-## React Compiler
+### 2. Hệ thống Mascot Tương tác
+- **Astro Cat:** Chú mèo phi hành gia biết liếc mắt theo chuột, chớp mắt, thay đổi biểu cảm theo hành động và có bong bóng lời thoại (Speech Bubble).
+- **Mini Cat (Mèo Hồng):** Chú mèo mập mạp chạy bộ trên thanh Progress Bar, cổ vũ em ấy hoàn thành việc nhập liệu.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 3. Hiệu ứng Animation Đặc sắc
+- **Heart Burst:** Hiệu ứng pháo hoa trái tim bắn ra khi tương tác với các nút bấm.
+- **Kawaii Icons:** Các icon SVG tự vẽ (Trái tim, Ngôi sao, Đám mây, Khiên) với phong cách dễ thương, có mắt và má hồng.
+- **Floating World:** Các icon bay lơ lửng tạo không gian huyền ảo.
 
-## Expanding the ESLint configuration
+### 4. Dashboard Dự báo
+- Dự báo "thời tiết tâm hồn" dựa trên 4 trạng thái: Vui, Buồn, Dỗi, Đói.
+- Nút **SOS (Cứu hộ khẩn cấp)** tự động gợi ý món ăn em ấy thích để bạn có cớ rủ đi ăn.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## 🛠 Công nghệ sử dụng
+- **Frontend:** React (Vite)
+- **Styling:** Tailwind CSS (Glassmorphism style)
+- **Animation:** Framer Motion
+- **Icons:** Lucide React & Custom SVG
+
+## 📖 Hướng dẫn cho Developer (Bạn)
+- **Chạy dự án:** `npm run dev`
+- **Xem demo Mascot:** Truy cập `http://localhost:5173/demo`
+- **Chỉnh sửa Mascot:** File `src/components/AstroCat.jsx`
+- **Chỉnh sửa Form:** File `src/components/SecurityGate.jsx`
+
+---
+*Developed with ❤️ by Gemini CLI cho kế hoạch tán tỉnh của bạn.*
