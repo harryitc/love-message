@@ -1,13 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import Welcome from './components/Welcome';
 import SecurityGate from './components/SecurityGate';
 import Calibration from './components/Calibration';
 import Dashboard from './components/Dashboard';
 import MascotDemo from './components/MascotDemo';
+import useSound from './hooks/useSound';
+import SoundControl from './components/SoundControl';
 
 function App() {
-  const [step, setStep] = useState('gate'); // gate, calibration, dashboard
+  const [step, setStep] = useState('welcome'); // welcome, gate, calibration, dashboard
   const [userData, setUserData] = useState(null);
   const [isDemo, setIsDemo] = useState(false);
+  
+  const { isMuted, play, playBGM, toggleMute } = useSound();
 
   useEffect(() => {
     // Kiểm tra nếu URL có chứa /demo
@@ -16,12 +21,24 @@ function App() {
     }
   }, []);
 
+  const handleStart = () => {
+    playBGM();
+    play('meow');
+    play('transition');
+    setStep('gate');
+  };
+
   const handleGateComplete = (data) => {
     setUserData(data);
-    setStep('calibration');
+    play('success');
+    setTimeout(() => {
+      play('transition');
+      setStep('calibration');
+    }, 1000);
   };
 
   const handleCalibrationComplete = () => {
+    play('transition');
     setStep('dashboard');
   };
 
@@ -47,9 +64,15 @@ function App() {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/50 rounded-full blur-[100px]" />
       </div>
 
+      <SoundControl isMuted={isMuted} toggleMute={toggleMute} />
+
       <main className="relative z-10 container mx-auto px-4 py-8">
+        {step === 'welcome' && (
+          <Welcome onStart={handleStart} />
+        )}
+
         {step === 'gate' && (
-          <SecurityGate onComplete={handleGateComplete} />
+          <SecurityGate onComplete={handleGateComplete} playSFX={play} />
         )}
         
         {step === 'calibration' && (
@@ -57,7 +80,7 @@ function App() {
         )}
 
         {step === 'dashboard' && (
-          <Dashboard userData={userData} />
+          <Dashboard userData={userData} playSFX={play} />
         )}
       </main>
     </div>

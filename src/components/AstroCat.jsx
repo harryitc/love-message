@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const AstroCat = ({ state = 'idle', className = "", mousePos = { x: 0.5, y: 0.5 } }) => {
+const AstroCat = ({ state = 'idle', className = "", mousePos = { x: 0.5, y: 0.5 }, onClick }) => {
   // Tính toán độ lệch của con ngươi (pupil) - giới hạn trong khoảng nhỏ
   const lookX = (mousePos.x - 0.5) * 12; 
   const lookY = (mousePos.y - 0.5) * 12;
@@ -14,7 +14,10 @@ const AstroCat = ({ state = 'idle', className = "", mousePos = { x: 0.5, y: 0.5 
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div 
+      className={`relative cursor-pointer active:scale-95 transition-transform ${className}`}
+      onClick={onClick}
+    >
       <motion.svg
         viewBox="0 -50 200 250"
         initial="idle"

@@ -112,11 +112,11 @@ const MiniCatSVG = ({ isWalking = true }) => (
   </motion.div>
 );
 
-const SecurityGate = ({ onComplete }) => {
+const SecurityGate = ({ onComplete, playSFX }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({ nickname: '', birthday: '', favoriteFood: '', dislike: '' });
   const [mascotState, setMascotState] = useState('idle');
-  const [bubbleText, setBubbleText] = useState("Chào em! Anh đợi hơi lâu rồi đấy.");
+  const [bubbleText, setBubbleText] = useState("Привет Huyền! Mèo máy đợi em từ nãy đến giờ nè.");
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const [bursts, setBursts] = useState([]);
 
@@ -131,35 +131,35 @@ const SecurityGate = ({ onComplete }) => {
   const steps = [
     {
       id: 'nickname',
-      question: "Hệ thống nên gọi em là gì nhỉ?",
-      label: "Mật danh đáng yêu",
+      question: "Mèo máy nên gọi em là gì để 'phục vụ' tốt nhất nhỉ?",
+      label: "Tên gọi thân mật",
       placeholder: "Biệt danh của em...",
       icon: <CuteHeart />,
-      mascotTalk: "Tên xinh thế này chắc chắn chủ nhân cũng cực phẩm!"
+      mascotTalk: "Красиво! (Đẹp quá!) Cái tên nghe thôi đã thấy cả một bầu trời đáng yêu rồi!"
     },
     {
       id: 'birthday',
-      question: "Tọa độ thời gian em xuất hiện?",
-      label: "Ngày sinh nhật",
+      question: "Ngày nào là ngày vũ trụ trở nên đặc biệt hơn vì có em?",
+      label: "Ngày sinh nhật của em",
       placeholder: "",
       icon: <CuteStar />,
-      mascotTalk: "Ngày này vũ trụ đã ban tặng một thiên thần nè."
+      mascotTalk: "Молодец! (Giỏi lắm!) Mèo máy sẽ lưu lại để cùng em đón những điều tuyệt vời nhé."
     },
     {
       id: 'favoriteFood',
-      question: "Món gì khiến em 'tan chảy'?",
-      label: "Nguồn nhiên liệu ưa thích",
-      placeholder: "Trà sữa, kem, hay là anh?",
+      question: "Nếu có dịp được mời em đi ăn, em sẽ chọn món gì đầu tiên?",
+      label: "Món ăn 'chân ái'",
+      placeholder: "Trà sữa, kem, hay một món quà bí mật?",
       icon: <CuteCloud />,
-      mascotTalk: "Anh ghi chú lại rồi, hôm nào mình đi ăn nhé!"
+      mascotTalk: "Вкусно! (Ngon lắm!) Món này ngon cực kỳ, em đúng là có gu ăn uống đó!"
     },
     {
       id: 'dislike',
-      question: "Điều gì khiến em thấy 'giông bão'?",
-      label: "Tác nhân gây biến đổi khí hậu",
-      placeholder: "Nhắn tin chậm, bị bỏ rơi...",
+      question: "Mèo máy nên tránh điều gì nhất để em luôn thấy thoải mái?",
+      label: "Điều khiến em phiền lòng",
+      placeholder: "Sự chờ đợi, những điều không rõ ràng...",
       icon: <CuteShield />,
-      mascotTalk: "Đã đưa vào danh sách đen! Sẽ không bao giờ xảy ra đâu."
+      mascotTalk: "Ghi nhớ kỹ rồi ạ! Mèo máy sẽ bảo vệ em khỏi những điều này."
     }
   ];
 
@@ -169,12 +169,16 @@ const SecurityGate = ({ onComplete }) => {
       setBubbleText(steps[currentStep].mascotTalk);
     } else {
       setMascotState('thinking');
-      setBubbleText("Anh đang lắng nghe nè...");
+      setBubbleText("Mèo máy đang lắng nghe em nè...");
     }
   }, [formData[steps[currentStep].id], currentStep]);
 
   const handleNext = (e) => {
     if (formData[steps[currentStep].id]) {
+      // Phát âm thanh click và heart
+      playSFX('click');
+      playSFX('heart');
+
       const rect = e.currentTarget.getBoundingClientRect();
       const x = rect.left + rect.width / 2;
       const y = rect.top + rect.height / 2;
@@ -203,7 +207,7 @@ const SecurityGate = ({ onComplete }) => {
               <div className="sm:hidden absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r border-b border-pink-100 rotate-45" />
             </motion.div>
           </AnimatePresence>
-          <AstroCat state={mascotState} mousePos={mousePos} className="w-28 h-28 sm:w-40 sm:h-40" />
+          <AstroCat state={mascotState} mousePos={mousePos} className="w-28 h-28 sm:w-40 sm:h-40" onClick={() => playSFX('meow')} />
         </motion.div>
       </div>
 
@@ -231,7 +235,7 @@ const SecurityGate = ({ onComplete }) => {
               <div className="flex gap-3 pt-2">
                 {currentStep > 0 && <button onClick={() => setCurrentStep(prev => prev - 1)} className="p-4 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 active:scale-95 transition-all"><ChevronLeft className="w-6 h-6" /></button>}
                 <button onClick={handleNext} disabled={!formData[steps[currentStep].id]} className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:shadow-none active:scale-[0.98] transition-all text-sm sm:text-base">
-                  {currentStep === steps.length - 1 ? "XÁC MINH DANH TÍNH" : "TIẾP TỤC"}
+                  {currentStep === steps.length - 1 ? "HOÀN TẤT CHUẨN BỊ" : "TIẾP TỤC"}
                   <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
@@ -239,7 +243,11 @@ const SecurityGate = ({ onComplete }) => {
           </motion.div>
         </AnimatePresence>
       </motion.div>
-      <div className="mt-8 flex items-center gap-2 opacity-30 select-none"><Sparkles size={12} /><span className="text-[10px] font-bold tracking-[0.3em] uppercase">Private Encryption</span><Sparkles size={12} /></div>
+      <div className="mt-8 flex items-center gap-2 opacity-60 select-none text-slate-500 font-medium">
+        <Sparkles size={12} />
+        <span className="text-[10px] font-bold tracking-[0.3em] uppercase">Personalized for Huyền</span>
+        <Sparkles size={12} />
+      </div>
     </div>
   );
 };
