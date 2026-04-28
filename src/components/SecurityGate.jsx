@@ -149,7 +149,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       id: 'favoriteFood',
       question: "Nếu có dịp được mời em đi ăn, em sẽ chọn món gì đầu tiên?",
       label: "Món ăn 'chân ái'",
-      placeholder: "Trà sữa, kem, hay một món quà bí mật?",
+      placeholder: "Trà sữa, kem, hay \"gì cũng được:)\"?",
       icon: <CuteCloud />,
       mascotTalk: "Вкусно! (Ngon lắm!) Món này ngon cực kỳ, em đúng là có gu ăn uống đó!"
     },
