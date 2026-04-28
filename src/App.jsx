@@ -94,7 +94,7 @@ function App() {
 
       <SoundControl isMuted={isMuted} toggleMute={toggleMute} />
 
-      <main className="relative z-10 container mx-auto px-4 py-8">
+      <main className="relative z-10">
         {step === 'welcome' && (
           <Welcome onStart={handleStart} />
         )}

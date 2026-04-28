@@ -56,7 +56,7 @@ const FloatingIcon = ({ children, delay = 0, x = 0, y = 0 }) => (
       repeat: Infinity, 
       delay 
     }}
-    className="absolute pointer-events-none opacity-20 text-pink-400"
+    className="absolute pointer-events-none opacity-50 text-pink-400"
     style={{ left: x, top: y }}
   >
     {children}
@@ -198,7 +198,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
 
       {bursts.map(burst => <HeartBurst key={burst.id} x={burst.x} y={burst.y} />)}
 
-      <div className="relative mb-8 mt-4 sm:mb-12 text-center flex flex-col items-center">
+      <div className="relative mt-4 text-center flex flex-col items-center">
         <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 4 }} className="flex flex-col items-center">
           <AnimatePresence mode="wait">
             <motion.div key={bubbleText} initial={{ scale: 0, opacity: 0, y: 10 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0, opacity: 0, y: 10 }} className="mb-4 sm:absolute sm:mb-0 sm:-top-4 sm:-right-44 w-full max-w-[200px] sm:w-48 bg-white p-4 rounded-2xl shadow-xl border border-pink-100 text-sm font-medium text-pink-600 italic text-center sm:text-left">

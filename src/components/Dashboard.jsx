@@ -1,37 +1,41 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils } from 'lucide-react';
+import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish } from 'lucide-react';
 
 const moods = [
   { 
     id: 'happy', 
     label: 'Vui vẻ', 
-    icon: <Sun className="w-8 h-8 text-pink-500" />,
-    color: 'bg-pink-50 border-pink-200',
+    icon: <Sun className="w-8 h-8 text-amber-500" />,
+    color: 'bg-amber-50 border-amber-200',
+    accent: 'text-amber-600',
     forecast: 'Thời tiết thật tuyệt vời! Một nguồn năng lượng tích cực đang lan tỏa khắp nơi.',
     advice: 'Hãy tận hưởng khoảnh khắc này và đừng quên mỉm cười thật nhiều nhé!'
   },
   { 
     id: 'sad', 
     label: 'Hơi buồn', 
-    icon: <CloudRain className="w-8 h-8 text-pink-400" />,
-    color: 'bg-pink-50/80 border-pink-100',
+    icon: <CloudRain className="w-8 h-8 text-blue-500" />,
+    color: 'bg-blue-50 border-blue-200',
+    accent: 'text-blue-600',
     forecast: 'Có vẻ bầu trời trong em đang hơi âm u một chút. Mèo máy thấy lo rồi đấy.',
     advice: 'Một bản nhạc nhẹ nhàng hoặc một chút đồ ngọt có thể giúp mây tan đi đó.'
   },
   { 
     id: 'angry', 
     label: 'Hơi dỗi', 
-    icon: <Zap className="w-8 h-8 text-rose-500" />,
+    icon: <CloudLightning className="w-8 h-8 text-rose-500" />,
     color: 'bg-rose-50 border-rose-200',
+    accent: 'text-rose-600',
     forecast: 'Cảnh báo có áp thấp nhiệt đới! Sấm sét đang nổ đùng đoàng quanh đây.',
     advice: 'Hít thở sâu một chút, Mèo máy luôn sẵn sàng lắng nghe mọi phiền muộn của em.'
   },
   { 
     id: 'hungry', 
     label: 'Đang đói', 
-    icon: <Cloud className="w-8 h-8 text-pink-300" />,
-    color: 'bg-pink-50 border-pink-200',
+    icon: <Fish className="w-8 h-8 text-orange-500" />,
+    color: 'bg-orange-50 border-orange-200',
+    accent: 'text-orange-600',
     forecast: 'Dạ dày đang phát đi tín hiệu cần nạp nhiên liệu gấp để duy trì độ đáng yêu.',
     advice: 'Mèo máy đề xuất một bữa ăn ngon miệng ngay lập tức!'
   }
@@ -50,41 +54,44 @@ const russianWords = [
 const MoodEffects = ({ mood }) => {
   if (!mood) return null;
 
-  if (mood === 'happy') {
-    return (
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {[...Array(15)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ y: -20, x: Math.random() * 100 + "%", rotate: 0, opacity: 0 }}
-            animate={{ y: "110vh", rotate: 360, opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 5 + Math.random() * 5, repeat: Infinity, delay: Math.random() * 5 }}
-            className="absolute text-pink-300/30"
-          >
-            <Heart size={Math.random() * 20 + 10} fill="currentColor" />
-          </motion.div>
-        ))}
-      </div>
-    );
-  }
+  const effects = {
+    happy: { icon: Sun, color: 'text-amber-400/30', count: 30, size: 20 },
+    sad: { isRain: true, color: 'bg-blue-400/20', count: 60 },
+    angry: { icon: CloudLightning, color: 'text-rose-400/30', count: 20, size: 25 },
+    hungry: { icon: Fish, color: 'text-orange-400/30', count: 25, size: 22 }
+  };
 
-  if (mood === 'sad') {
-    return (
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        {[...Array(30)].map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ y: -20, x: Math.random() * 100 + "%", opacity: 0 }}
-            animate={{ y: "110vh", opacity: [0, 0.4, 0] }}
-            transition={{ duration: 1 + Math.random() * 1, repeat: Infinity, delay: Math.random() * 2 }}
-            className="absolute w-[1px] h-8 bg-pink-400/20"
-          />
-        ))}
-      </div>
-    );
-  }
+  const effect = effects[mood];
+  if (!effect) return null;
 
-  return null;
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-20">
+      {[...Array(effect.count)].map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: -50, rotate: 0, opacity: 0 }}
+          style={{ left: Math.random() * 100 + "%" }}
+          animate={{ 
+            y: "110vh", 
+            rotate: effect.isRain ? 0 : 360, 
+            opacity: effect.isRain ? [0, 0.4, 0] : [0, 0.6, 0.6, 0] 
+          }}
+          transition={{ 
+            duration: (effect.isRain ? 0.8 : 4) + Math.random() * 4, 
+            repeat: Infinity, 
+            delay: Math.random() * 5 
+          }}
+          className={`absolute ${effect.color}`}
+        >
+          {effect.isRain ? (
+            <div className="w-[2px] h-10 bg-current" />
+          ) : (
+            <effect.icon size={Math.random() * 10 + effect.size} fill="currentColor" />
+          )}
+        </motion.div>
+      ))}
+    </div>
+  );
 };
 
 const SecretNote = ({ isOpen, onClose, nickname }) => {
@@ -161,7 +168,7 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-1000 ${selectedMood ? moods.find(m => m.id === selectedMood.id).color.split(' ')[0] : 'bg-transparent'}`}>
+    <div className={`min-h-screen transition-colors px-4 py-8 duration-1000 ${selectedMood ? moods.find(m => m.id === selectedMood.id).color.split(' ')[0] : 'bg-transparent'}`}>
       <MoodEffects mood={selectedMood?.id} />
       <SecretNote isOpen={showSecret} onClose={() => setShowSecret(false)} nickname={userData?.nickname} />
       
