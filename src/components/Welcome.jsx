@@ -89,6 +89,40 @@ const TypingText = ({ text }) => {
   );
 };
 
+const FloatingWords = () => {
+  const words = [
+    { text: 'Милая', delay: 0, x: '15%', duration: 20 },
+    { text: 'Счастье', delay: 4, x: '75%', duration: 22 },
+    { text: 'Улыбка', delay: 8, x: '25%', duration: 25 },
+    { text: 'Солнышко', delay: 12, x: '65%', duration: 21 },
+  ];
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      {words.map((word, i) => (
+        <motion.div
+          key={i}
+          style={{ left: word.x }}
+          initial={{ y: '110vh', opacity: 0 }}
+          animate={{ 
+            y: '-10vh', 
+            opacity: [0, 0.7, 0.7, 0],
+          }}
+          transition={{ 
+            duration: word.duration, 
+            repeat: Infinity, 
+            delay: word.delay,
+            ease: "linear"
+          }}
+          className="absolute text-pink-400/70 font-serif italic font-semibold text-lg sm:text-xl whitespace-nowrap"
+        >
+          {word.text}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
 const Welcome = ({ onStart }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -100,6 +134,7 @@ const Welcome = ({ onStart }) => {
   return (
     <div className="relative min-h-[80vh] flex flex-col items-center justify-center p-4">
       <StarField />
+      <FloatingWords />
       
       <motion.div
         initial={{ opacity: 0, y: 20 }}

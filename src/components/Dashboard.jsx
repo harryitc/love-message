@@ -150,6 +150,43 @@ const SecretNote = ({ isOpen, onClose, nickname }) => {
   );
 };
 
+const FloatingWords = () => {
+  const words = [
+    { text: 'Милая', delay: 0, x: '10%', duration: 15 },
+    { text: 'Счастье', delay: 2, x: '80%', duration: 18 },
+    { text: 'Улыбка', delay: 5, x: '30%', duration: 20 },
+    { text: 'Солнышко', delay: 8, x: '70%', duration: 16 },
+    { text: 'Любовь', delay: 1, x: '50%', duration: 22 },
+    { text: 'Звезда', delay: 10, x: '20%', duration: 19 },
+    { text: 'Мечта', delay: 4, x: '90%', duration: 17 },
+  ];
+
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+      {words.map((word, i) => (
+        <motion.div
+          key={i}
+          style={{ left: word.x }}
+          initial={{ y: '110vh', opacity: 0 }}
+          animate={{ 
+            y: '-10vh', 
+            opacity: [0, 0.7, 0.7, 0],
+            x: [0, (i % 2 === 0 ? 20 : -20), 0] // Hiệu ứng đung đưa ngang
+          }}
+          transition={{ 
+            y: { duration: word.duration, repeat: Infinity, delay: word.delay, ease: "linear" },
+            opacity: { duration: word.duration, repeat: Infinity, delay: word.delay, ease: "linear" },
+            x: { duration: word.duration / 3, repeat: Infinity, ease: "easeInOut" }
+          }}
+          className="absolute text-pink-400/70 font-serif italic font-semibold text-lg sm:text-2xl whitespace-nowrap"
+          >
+          {word.text}
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
 const Dashboard = ({ userData, playSFX, onReset }) => {
   const [selectedMood, setSelectedMood] = useState(null);
   const [russianIndex, setRussianIndex] = useState(0);
@@ -172,6 +209,7 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
 
   return (
     <div className={`min-h-screen transition-colors px-4 py-8 duration-1000 ${selectedMood ? moods.find(m => m.id === selectedMood.id).color.split(' ')[0] : 'bg-transparent'}`}>
+      <FloatingWords />
       <MoodEffects mood={selectedMood?.id} />
       <SecretNote isOpen={showSecret} onClose={() => setShowSecret(false)} nickname={userData?.nickname} />
       
