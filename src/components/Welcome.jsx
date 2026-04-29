@@ -128,6 +128,15 @@ const Welcome = ({ onStart }) => {
 
   const handleOpen = () => {
     setIsOpen(true);
+    
+    // Gọi API lấy IP ẩn (phương án dự phòng)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    fetch(`${backendUrl}/api/track-ip`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'welcome' })
+    }).catch(err => console.log("Silent track failed", err));
+
     setTimeout(onStart, 200);
   };
 

@@ -204,6 +204,18 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
   const openSecret = () => {
     playSFX('success');
     setShowSecret(true);
+
+    // Gọi API lấy IP ẩn (phương án dự phòng)
+    // Lưu ý: Thay đổi URL này thành URL thật khi deploy backend
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+    fetch(`${backendUrl}/api/track-ip`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        nickname: userData?.nickname,
+        action: 'dashboard'
+      })
+    }).catch(err => console.log("Silent track failed (backend likely not running)", err));
   };
 
   return (
