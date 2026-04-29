@@ -88,48 +88,75 @@ const Calibration = ({ onComplete, userData }) => {
       <AnimatePresence>
         {showLocationPrompt && (
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-slate-900/20 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-pink-100/40 backdrop-blur-[12px]"
           >
-            <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border-2 border-pink-100 space-y-6">
-              <div className="flex justify-center">
-                <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center text-pink-500 animate-bounce">
-                  <MapPin size={40} />
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 20, stiffness: 100 }}
+              className="bg-white/70 backdrop-blur-md rounded-[3rem] p-8 sm:p-10 max-w-sm w-full shadow-[0_20px_50px_rgba(255,182,193,0.3)] border border-white/80 relative overflow-hidden"
+            >
+              {/* Decorative elements inside modal */}
+              <div className="absolute -top-10 -right-10 w-32 h-32 bg-pink-200/30 rounded-full blur-2xl" />
+              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-200/30 rounded-full blur-2xl" />
+
+              <div className="relative z-10 space-y-8">
+                <div className="flex justify-center">
+                  <motion.div 
+                    animate={{ 
+                      y: [0, -10, 0],
+                      rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                    className="w-24 h-24 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center text-pink-400 shadow-inner"
+                  >
+                    <MapPin size={44} className="drop-shadow-sm" />
+                  </motion.div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold text-slate-800 tracking-tight italic flex items-center justify-center gap-2">
+                    <Sparkles size={20} className="text-yellow-400" />
+                    Đồng bộ bầu trời
+                    <Sparkles size={20} className="text-yellow-400" />
+                  </h3>
+                  <p className="text-slate-600 text-sm leading-relaxed font-medium px-2">
+                    Mèo máy muốn ngắm bầu trời cùng em. Để dự báo chuẩn 100% và bảo vệ em tốt nhất, em cho phép Mèo máy kết nối với bầu trời chỗ em một xíu nhé! ✨
+                  </p>
+                </div>
+
+                <div className="pt-2 space-y-4">
+                  <motion.button 
+                    whileHover={{ scale: 1.02, shadow: "0 10px 25px rgba(244,114,182,0.4)" }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleRequestLocation}
+                    disabled={isSyncing}
+                    className="w-full py-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold rounded-2xl shadow-lg shadow-pink-100/50 flex items-center justify-center gap-3 disabled:opacity-70 transition-all text-base tracking-wide"
+                  >
+                    {isSyncing ? (
+                      <>
+                        <Loader2 className="animate-spin w-5 h-5" />
+                        ĐANG KẾT NỐI...
+                      </>
+                    ) : (
+                      <>
+                        ĐỒNG Ý LUÔN! 🌸
+                      </>
+                    )}
+                  </motion.button>
+                  <button 
+                    onClick={() => { setShowLocationPrompt(false); setStep(3); resumeCalibration(); }}
+                    className="w-full text-slate-400 text-[11px] font-bold uppercase tracking-[0.2em] hover:text-pink-400 transition-colors"
+                  >
+                    Để lúc khác nhé
+                  </button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-800 italic">Đồng bộ bầu trời 🌤️</h3>
-                <p className="text-slate-600 text-sm leading-relaxed font-medium">
-                  Để Mèo máy dự báo chuẩn 100% và canh thời tiết bảo vệ em, em cho phép Mèo máy kết nối với bầu trời chỗ em một chút nhé! ✨
-                </p>
-              </div>
-              <div className="pt-2">
-                <button 
-                  onClick={handleRequestLocation}
-                  disabled={isSyncing}
-                  className="w-full py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 active:scale-95 transition-all flex items-center justify-center gap-2"
-                >
-                  {isSyncing ? (
-                    <>
-                      <Loader2 className="animate-spin w-5 h-5" />
-                      ĐANG KẾT NỐI...
-                    </>
-                  ) : (
-                    <>
-                      ĐỒNG Ý LUÔN! <Sparkles size={18} />
-                    </>
-                  )}
-                </button>
-                <button 
-                  onClick={() => { setShowLocationPrompt(false); setStep(3); resumeCalibration(); }}
-                  className="w-full py-3 mt-2 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-pink-400 transition-colors"
-                >
-                  Để sau cũng được ạ
-                </button>
-              </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
