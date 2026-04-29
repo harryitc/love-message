@@ -5,11 +5,11 @@ import { Loader2, Zap, Search, Heart } from 'lucide-react';
 const Calibration = ({ onComplete }) => {
   const [step, setStep] = useState(0);
   const messages = [
-    { text: "Mèo máy đang chuẩn bị không gian riêng cho em...", icon: <Search className="w-5 h-5 text-blue-400" /> },
-    { text: "Đang cố gắng ghi điểm trong mắt người dùng...", icon: <Zap className="w-5 h-5 text-yellow-400" /> },
-    { text: "Đang thiết lập hàng rào bảo vệ em khỏi phiền muộn...", icon: <Loader2 className="w-5 h-5 animate-spin text-purple-400" /> },
-    { text: "Phát hiện một nguồn năng lượng siêu tích cực...", icon: <Heart className="w-5 h-5 text-red-400" /> },
-    { text: "Mọi thứ đã sẵn sàng! Chào mừng em nhé...", icon: <Zap className="w-5 h-5 text-green-400" /> }
+    { text: "Mèo máy đang trải thảm hồng đón em nè... ✨", icon: <Search className="w-5 h-5 text-pink-400" /> },
+    { text: "Đang kiểm tra độ xinh đẹp... (100% rồi nha! 🌸)", icon: <Zap className="w-5 h-5 text-yellow-400" /> },
+    { text: "Đang đuổi mấy đám mây buồn đi chỗ khác... ☁️", icon: <Loader2 className="w-5 h-5 animate-spin text-purple-400" /> },
+    { text: "Pha một chút trà sữa vào hệ thống... 🧋", icon: <Heart className="w-5 h-5 text-red-400" /> },
+    { text: "Mọi thứ đã sẵn sàng! Meowww... 🐾", icon: <Zap className="w-5 h-5 text-green-400" /> }
   ];
 
   useEffect(() => {

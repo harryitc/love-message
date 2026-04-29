@@ -135,7 +135,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       label: "Tên gọi thân mật",
       placeholder: "Biệt danh của em...",
       icon: <CuteHeart />,
-      mascotTalk: "Красиво! (Đẹp quá!) Cái tên nghe thôi đã thấy cả một bầu trời đáng yêu rồi!"
+      mascotTalk: "Красиво! (Đẹp quá!) Cái tên nghe thôi đã thấy cả một bầu trời đáng yêu rồi đó! (◕‿◕✿)"
     },
     {
       id: 'birthday',
@@ -143,15 +143,15 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       label: "Ngày sinh nhật của em",
       placeholder: "xx/xx/2007",
       icon: <CuteStar />,
-      mascotTalk: "Молодец! (Giỏi lắm!) Mèo máy sẽ lưu lại để cùng em đón những điều tuyệt vời nhé."
+      mascotTalk: "Молодец! (Giỏi lắm!) Mèo máy sẽ lưu lại để cùng em đón những điều tuyệt vời nhé. ✨"
     },
     {
       id: 'favoriteFood',
-      question: "Nếu có dịp được mời em đi ăn, em sẽ chọn món gì đầu tiên?",
+      question: "Nếu được rủ em đi ăn, em sẽ chọn món gì đầu tiên?",
       label: "Món ăn 'chân ái'",
       placeholder: "Trà sữa, kem, hay \"gì cũng được:)\"?",
       icon: <CuteCloud />,
-      mascotTalk: "Вкусно! (Ngon lắm!) Món này ngon cực kỳ, em đúng là có gu ăn uống đó!"
+      mascotTalk: "Вкусно! (Ngon lắm!) Món này ngon cực kỳ, em đúng là có gu ăn uống đó! (´﹃｀)"
     },
     {
       id: 'dislike',
@@ -159,7 +159,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       label: "Điều khiến em phiền lòng",
       placeholder: "Sự chờ đợi, những điều không rõ ràng...",
       icon: <CuteShield />,
-      mascotTalk: "Ghi nhớ kỹ rồi ạ! Mèo máy sẽ bảo vệ em khỏi những điều này."
+      mascotTalk: "Ghi nhớ kỹ rồi ạ! Mèo máy sẽ lập hàng rào bảo vệ em khỏi mấy thứ này nha! 🛡️"
     }
   ];
 
@@ -169,7 +169,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       setBubbleText(steps[currentStep].mascotTalk);
     } else {
       setMascotState('thinking');
-      setBubbleText("Mèo máy đang lắng nghe em nè...");
+      setBubbleText("Привет Huyền! Mèo máy vểnh tai lắng nghe em nè... 🐾");
     }
   }, [formData[steps[currentStep].id], currentStep]);
 
@@ -187,6 +187,11 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       setTimeout(() => setBursts(prev => prev.filter(b => b.id !== newBurst.id)), 1000);
       if (currentStep < steps.length - 1) setCurrentStep(currentStep + 1);
       else onComplete(formData);
+    } else {
+      setMascotState('shook');
+      setBubbleText("Ơ kìa, em đừng bỏ trống mà, Mèo máy buồn đó... (╯︵╰,)");
+      playSFX('meow');
+      setTimeout(() => setMascotState('thinking'), 1000);
     }
   };
 
