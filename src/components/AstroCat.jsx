@@ -68,7 +68,7 @@ const AstroCat = ({ state = 'idle', className = "", mousePos = { x: 0.5, y: 0.5 
             animate={{ opacity: 1, y: -80, scale: 1 }}
             exit={{ opacity: 0, scale: 1.2 }}
             transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute whitespace-nowrap pointer-events-none z-50 text-pink-500 font-bold text-xs sm:text-sm drop-shadow-sm bg-white/90 px-3 py-1 rounded-full border border-pink-100 shadow-sm"
+            className="absolute whitespace-nowrap pointer-events-none z-50 text-pink-500 font-bold text-xs sm:text-sm drop-shadow-sm bg-white/90 px-3 py-1 rounded-full border border-pink-100 shadow-sm will-change-transform"
             style={{ 
               left: click.x,
               top: click.y,

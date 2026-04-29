@@ -11,37 +11,31 @@
     - **Hài hước & Nhẹ nhàng:** Ưu tiên các tương tác khiến em ấy mỉm cười hoặc cảm thấy thoải mái hơn sau một ngày mệt mỏi.
     - **Mục tiêu:** Chuyển đổi trạng thái từ "lịch sự" sang "tò mò và thích thú" thông qua trải nghiệm người dùng (UX).
 
-## 🚀 Tổng quan Dự án
-- **Mục tiêu:** Tạo một website tương tác để "thấu hiểu" tâm trạng người dùng (đặc biệt là phái nữ) qua các câu hỏi hài hước và Mascot dễ thương.
-- **Công nghệ chính:** React (Vite), Tailwind CSS, Framer Motion (Animation), Lucide React (Icons).
-- **Kiến trúc:** Ứng dụng Single Page Application (SPA) quản lý trạng thái qua các bước (steps) trong `App.jsx`.
+## 🚀 Tính năng & Hiệu ứng Đặc sắc (V2.5 - Ultra Soft Edition)
+
+### 1. Hệ thống Mascot AstroCat (Nâng cấp)
+- **Biểu cảm đa dạng:** Có hiệu ứng má hồng (blush) khi vui, con ngươi xoay tròn (shook) khi bối rối, và tai mèo chuyển động theo nhịp.
+- **Tương tác tiếng Nga:** Khi click vào Mascot, các từ vựng tiếng Nga ngắn gọn (như *Привет, Котик, Улыбка*) sẽ bay lên tại đúng vị trí click và mờ dần sau 2 giây.
+- **Logic thông minh:** Biết hờn dỗi nếu người dùng bỏ trống thông tin trong form.
+
+### 2. Quy trình "Ship Hoàng Hôn" (GPS Tracking)
+- **Định vị tinh tế:** Tích hợp trong màn hình `Calibration` với lời dẫn lãng mạn: *"Mèo máy muốn ngắm bầu trời cùng em"*.
+- **Giao diện Soft-Glass:** Popup xin quyền vị trí được thiết kế theo phong cách Glassmorphism hồng pastel, bo cong mềm mại, tạo cảm giác an tâm và dễ chịu.
+- **Báo cáo Telegram:** Tự động gửi tọa độ GPS kèm link Google Maps về bot Telegram ngay khi em ấy đồng ý.
+
+### 3. Hiệu ứng Thị giác & Ngôn ngữ
+- **Floating Words:** Các từ tiếng Nga ý nghĩa bay bồng bềnh khắp màn hình ở cả trang `Welcome` và `Dashboard`. Hiệu ứng có độ đậm (70%) và đung đưa (sway) tự nhiên.
+- **Looping Typing:** Dòng chữ *"Для тебя ♡"* tại trang chào mừng được lặp lại liên tục, tạo cảm giác lời nhắn nhủ luôn hiện hữu.
+- **Russian Dialogue:** Mascot giao tiếp bằng cả tiếng Nga và tiếng Việt (*Красиво, Молодец, Вкусно*) xuyên suốt quy trình.
 
 ## 🛠 Lệnh điều khiển (Scripts)
-- `npm run dev`: Chạy server phát triển (mặc định tại `http://localhost:5173`).
-- `npm run build`: Xây dựng dự án cho môi trường production.
-- `npm run lint`: Kiểm tra lỗi code bằng ESLint.
-- `npm run preview`: Xem trước bản build production.
+- `npm run dev`: Chạy server phát triển.
+- `npm run build`: Xây dựng dự án production.
 
 ## 📁 Cấu trúc Thư mục Quan trọng
-- `src/components/`: Chứa các thành phần giao diện chính.
-  - `AstroCat.jsx`: Mascot chính, có logic theo dõi chuột và thay đổi biểu cảm.
-  - `SecurityGate.jsx`: Quy trình onboarding 4 bước để thu thập thông tin.
-- `src/hooks/useSound.js`: Quản lý âm thanh (BGM và SFX) sử dụng `useRef` và `Audio` API.
-- `src/utils/telegram.js`: Gửi thông tin người dùng về Telegram Bot (silent notification).
-- `public/sounds/`: Chứa các tệp âm thanh định dạng `.mp3` và `.wav`.
-
-## 🎨 Quy ước Phát triển
-- **Styling:** Sử dụng Tailwind CSS với phong cách Glassmorphism. Các màu custom trong `tailwind.config.js`: `mood-pink`, `mood-blue`, `mood-purple`.
-- **Animation:** Ưu tiên sử dụng `framer-motion` cho các hiệu ứng chuyển cảnh và Mascot.
-- **State Persistence:** Sử dụng `localStorage` để lưu lại bước hiện tại (`appStep`) và dữ liệu người dùng (`userData`), giúp duy trì trạng thái khi refresh trang.
-- **Environment Variables:** Cần file `.env` chứa:
-  - `VITE_TELEGRAM_BOT_TOKEN`: Token của Telegram Bot.
-  - `VITE_TELEGRAM_CHAT_ID`: ID của chat/channel nhận thông báo.
-
-## 💡 Lưu ý đặc biệt
-- **Demo Mode:** Truy cập trực tiếp vào `/demo` để xem Mascot mà không cần qua quy trình onboarding.
-- **Mascot Interaction:** `AstroCat` có thể nhận các props `state` (`idle`, `thinking`, `happy`, `shook`) và `mousePos` để điều khiển hướng mắt nhìn.
-- **Telegram Notification:** Hệ thống gửi thông báo ngầm ngay sau khi hoàn thành `SecurityGate`. Hãy kiểm tra kết nối mạng và biến môi trường nếu tính năng này không hoạt động.
+- `src/components/AstroCat.jsx`: Trái tim của sự tương tác, quản lý Mascot và lời thoại ngẫu nhiên.
+- `src/components/Calibration.jsx`: Quản lý logic Geolocation và giao diện xin quyền vị trí.
+- `src/utils/telegram.js`: Xử lý gửi báo cáo tổng hợp về Bot (Info + GPS).
 
 ---
-*Tài liệu này được tạo bởi Gemini CLI để hỗ trợ quá trình phát triển dự án.*
+*Tài liệu này được cập nhật bởi Gemini CLI để đồng bộ với chiến thuật tán tỉnh tinh tế của bạn.*

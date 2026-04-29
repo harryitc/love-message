@@ -81,7 +81,7 @@ const MoodEffects = ({ mood }) => {
             repeat: Infinity, 
             delay: Math.random() * 5 
           }}
-          className={`absolute ${effect.color}`}
+          className={`absolute will-change-transform ${effect.color}`}
         >
           {effect.isRain ? (
             <div className="w-[2px] h-10 bg-current" />
@@ -177,12 +177,11 @@ const FloatingWords = () => {
             y: { duration: word.duration, repeat: Infinity, delay: word.delay, ease: "linear" },
             opacity: { duration: word.duration, repeat: Infinity, delay: word.delay, ease: "linear" },
             x: { duration: word.duration / 3, repeat: Infinity, ease: "easeInOut" }
-          }}
-          className="absolute text-pink-400/70 font-serif italic font-semibold text-lg sm:text-2xl whitespace-nowrap"
-          >
-          {word.text}
-        </motion.div>
-      ))}
+            }}
+            className="absolute text-pink-400/70 font-serif italic font-semibold text-lg sm:text-2xl whitespace-nowrap will-change-[transform,opacity]"
+            >
+            {word.text}
+            </motion.div>      ))}
     </div>
   );
 };

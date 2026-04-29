@@ -8,7 +8,7 @@ const StarField = () => {
       {[...Array(20)].map((_, i) => (
         <motion.div
           key={i}
-          className="absolute w-1 h-1 bg-white rounded-full"
+          className="absolute w-1 h-1 bg-white rounded-full will-change-[transform,opacity]"
           initial={{ 
             x: Math.random() * 100 + "%", 
             y: Math.random() * 100 + "%",
@@ -114,7 +114,7 @@ const FloatingWords = () => {
             delay: word.delay,
             ease: "linear"
           }}
-          className="absolute text-pink-400/70 font-serif italic font-semibold text-lg sm:text-xl whitespace-nowrap"
+          className="absolute text-pink-400/70 font-serif italic font-semibold text-lg sm:text-xl whitespace-nowrap will-change-[transform,opacity]"
         >
           {word.text}
         </motion.div>
