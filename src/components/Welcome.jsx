@@ -32,19 +32,28 @@ const StarField = () => {
 
 const TypingText = ({ text }) => {
   const letters = Array.from(text);
+  const [key, setKey] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setKey(prev => prev + 1);
+    }, 4500); // Lặp lại sau mỗi 4.5 giây (đủ thời gian để hoàn thành animation và nghỉ)
+    return () => clearInterval(interval);
+  }, []);
   
   const container = {
     hidden: { opacity: 0 },
-    visible: (i = 1) => ({
+    visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.12, delayChildren: 0.8 },
-    }),
+      transition: { staggerChildren: 0.15, delayChildren: 0.5 },
+    },
   };
 
   const child = {
     visible: {
       opacity: 1,
       y: 0,
+      scale: 1,
       transition: {
         type: "spring",
         damping: 12,
@@ -54,22 +63,29 @@ const TypingText = ({ text }) => {
     hidden: {
       opacity: 0,
       y: 10,
+      scale: 0.8
     },
   };
 
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="visible"
-      className="text-pink-400 font-serif italic text-xl mb-4 flex justify-center"
-    >
-      {letters.map((letter, index) => (
-        <motion.span variants={child} key={index}>
-          {letter === " " ? "\u00A0" : letter}
-        </motion.span>
-      ))}
-    </motion.div>
+    <div className="h-10 mb-4 flex justify-center items-center">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={key}
+          variants={container}
+          initial="hidden"
+          animate="visible"
+          exit={{ opacity: 0, y: -5, transition: { duration: 0.5 } }}
+          className="text-pink-400 font-serif italic text-xl flex justify-center"
+        >
+          {letters.map((letter, index) => (
+            <motion.span variants={child} key={index}>
+              {letter === " " ? "\u00A0" : letter}
+            </motion.span>
+          ))}
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
 

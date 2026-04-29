@@ -109,7 +109,7 @@ function App() {
         )}
         
         {step === 'calibration' && (
-          <Calibration onComplete={handleCalibrationComplete} />
+          <Calibration onComplete={handleCalibrationComplete} userData={userData} />
         )}
 
         {step === 'dashboard' && (
