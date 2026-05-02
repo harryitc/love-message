@@ -121,7 +121,23 @@ const Calibration = ({ onComplete, userData }) => {
                 <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-200/30 rounded-full blur-2xl" />
 
                 <div className="relative z-10 space-y-8">
-                  <div className="relative inline-block">
+                  <div className="relative flex flex-col items-center">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={bubbleText}
+                        initial={{ scale: 0, opacity: 0, y: 10 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0, opacity: 0, y: 10 }}
+                        className="mb-4 sm:absolute sm:mb-0 sm:-top-4 sm:-right-24 w-full max-w-[180px] sm:w-44 bg-white p-3 rounded-2xl border border-pink-100 text-[11px] font-bold text-pink-600 italic shadow-sm relative"
+                      >
+                        {bubbleText}
+                        {/* Mũi tên trỏ xuống cho mobile */}
+                        <div className="sm:hidden absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-pink-100 rotate-45" />
+                        {/* Mũi tên trỏ sang trái cho desktop */}
+                        <div className="hidden sm:block absolute bottom-2 -left-1.5 w-3 h-3 bg-white border-l border-b border-pink-100 rotate-45" />
+                      </motion.div>
+                    </AnimatePresence>
+
                     <motion.div 
                       animate={{ 
                         y: [0, -10, 0],
@@ -129,21 +145,8 @@ const Calibration = ({ onComplete, userData }) => {
                       }}
                       transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                     >
-                      <AstroCat state={mascotState} className="w-32 h-32 mx-auto" />
+                      <AstroCat state={mascotState} className="w-28 h-28 sm:w-32 sm:h-32 mx-auto" />
                     </motion.div>
-                    
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={bubbleText}
-                        initial={{ scale: 0, opacity: 0, x: 20 }}
-                        animate={{ scale: 1, opacity: 1, x: 0 }}
-                        exit={{ scale: 0, opacity: 0, x: 20 }}
-                        className="absolute -top-4 -right-16 sm:-right-24 w-40 bg-white p-3 rounded-2xl border border-pink-100 text-[11px] font-bold text-pink-600 italic shadow-sm"
-                      >
-                        {bubbleText}
-                        <div className="absolute bottom-2 -left-1.5 w-3 h-3 bg-white border-l border-b border-pink-100 rotate-45" />
-                      </motion.div>
-                    </AnimatePresence>
                   </div>
 
                   <div className="space-y-4">
@@ -171,7 +174,7 @@ const Calibration = ({ onComplete, userData }) => {
                             <span className="font-bold text-xs uppercase tracking-wider">Lỗi kết nối</span>
                           </div>
                           <p className="text-slate-600 text-sm font-medium">
-                            Mèo máy không tìm thấy em rồi... Em kiểm tra lại cài đặt vị trí trên trình duyệt và cho phép Mèo máy nha! 🥺
+                            Mèo máy không tìm thấy em rồi... Em kiểm tra lại cài đặt vị trí và cho phép Mèo máy nha! 🥺
                           </p>
                         </div>
                       )}
@@ -225,9 +228,19 @@ const Calibration = ({ onComplete, userData }) => {
                     )}
                     
                     {locationError && (
-                      <p className="mt-4 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] px-4 leading-loose">
-                        Mẹo: Nhấn vào icon ổ khóa trên thanh địa chỉ để bật lại quyền vị trí nha!
-                      </p>
+                      <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-3">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
+                          Cách bật lại định vị:
+                        </p>
+                        <ul className="text-[9px] text-left text-slate-500 space-y-1 font-medium list-disc pl-4">
+                          <li><strong>iPhone:</strong> Cài đặt {'>'} Quyền riêng tư {'>'} Dịch vụ định vị {'>'} Bật cho Trình duyệt.</li>
+                          <li><strong>Android:</strong> Cài đặt {'>'} Vị trí {'>'} Quyền ứng dụng {'>'} Bật cho Trình duyệt.</li>
+                          <li><strong>Trình duyệt:</strong> Nhấn vào icon cài đặt/ổ khóa trên thanh địa chỉ.</li>
+                        </ul>
+                        <p className="text-[9px] text-pink-500 font-bold italic pt-1">
+                          *Bật xong em nhớ quay lại đây nhấn "Thử kết nối lại" nhé!
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
