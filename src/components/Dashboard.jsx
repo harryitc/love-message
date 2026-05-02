@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish, Satellite } from 'lucide-react';
+import { TARGET_NAME } from '../utils/constants';
 
 const moods = [
   { 
@@ -121,7 +122,7 @@ const SecretNote = ({ isOpen, onClose, nickname }) => {
                 </div>
                 
                 <div className="space-y-4 text-slate-700 leading-relaxed text-lg italic">
-                  <p>Chào Huyền,</p>
+                  <p>Chào {TARGET_NAME},</p>
                   <p>
                     Anh làm cái “mèo máy” nhỏ này đơn giản chỉ vì nghĩ rằng: Biết đâu có lúc em ghé vào, thấy vui hơn một chút.
                   </p>
@@ -138,7 +139,7 @@ const SecretNote = ({ isOpen, onClose, nickname }) => {
                 </div>
 
                 <div className="pt-6 border-t border-pink-100 flex justify-between items-center text-slate-400 text-xs uppercase tracking-widest font-bold">
-                  <span>Mèo máy của Huyền</span>
+                  <span>Mèo máy của {TARGET_NAME}</span>
                   <Sparkles size={16} className="text-yellow-400" />
                 </div>
               </div>
@@ -245,9 +246,9 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
               animate={{ opacity: 1 }}
               className="text-3xl font-bold text-slate-800"
             >
-              Chào Huyền! 👋
+              Chào {TARGET_NAME}! 👋
             </motion.h2>
-            <p className="text-slate-600 font-medium italic px-4">Chào mừng Huyền quay lại với trạm dừng chân của riêng mình.</p>
+            <p className="text-slate-600 font-medium italic px-4">Chào mừng em quay lại với trạm dừng chân của riêng mình.</p>
           </div>
 
           {/* Weather Station Card - Mobile Optimized */}
@@ -285,7 +286,7 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
 
                 <div className="bg-pink-50/50 p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.5rem] border border-pink-100/50 relative w-full">
                   <p className="text-xs sm:text-sm font-medium text-slate-600 italic leading-relaxed text-left">
-                    "{isHot ? `Chỗ em nóng quá (${weather.temperature}°C), nhớ uống nhiều nước và đừng đi nắng lâu nha! 🥤` : currentStatus?.advice}"
+                    "{isHot ? `Chỗ em đang nóng quá (${weather.temperature}°C), nhớ uống thật nhiều nước và đừng đi nắng lâu nha! 🥤` : currentStatus?.advice}"
                   </p>
                   <div className="absolute -bottom-2 -right-1 opacity-[0.07] font-black text-3xl sm:text-4xl italic text-pink-600 select-none pointer-events-none">
                     {currentStatus?.ru || "Погода"}
@@ -397,7 +398,7 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
             [ Bắt đầu lại hành trình ]
           </button>
           <footer className="opacity-60 text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold text-center">
-            Dành tặng riêng cho Huyền &copy; 2026
+            Dành tặng riêng cho {TARGET_NAME} &copy; 2026
           </footer>
         </div>
       </div>

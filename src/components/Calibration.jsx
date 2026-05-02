@@ -2,21 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Zap, Search, Heart, MapPin, Sparkles, Satellite, AlertCircle } from 'lucide-react';
 import { sendTelegramMessage } from '../utils/telegram';
+import { TARGET_NAME } from '../utils/constants';
 import AstroCat from './AstroCat';
 
-const Calibration = ({ onComplete, userData }) => {
+const Calibration = ({ onComplete, userData, playSFX }) => {
   const [step, setStep] = useState(0);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [locationError, setLocationError] = useState(false);
   const [mascotState, setMascotState] = useState('thinking');
-  
+
   // Xác định xem đây là lần đầu hay quay lại
   const isReturning = !!userData?.nickname;
   const [bubbleText, setBubbleText] = useState(
     isReturning 
-    ? `Chào Huyền quay lại! Chờ Mèo máy một giây nhé... 🐾☂️` 
-    : "Huyền ơi, Mèo máy đang bị lạc giữa các vì sao... ✨"
+    ? `Chào ${TARGET_NAME} quay lại! Chờ Mèo máy một giây nhé... 🐾☂️` 
+    : "Em ơi, Mèo máy đang bị lạc giữa các vì sao... ✨"
   );
 
   const messages = [
@@ -79,6 +80,7 @@ const Calibration = ({ onComplete, userData }) => {
           const weatherData = await fetchWeather(latitude, longitude);
           
           setMascotState('happy');
+          if (playSFX) playSFX('meow');
           setBubbleText("Hú uuu! Kết nối thành công rồi! Mèo máy tới chỗ em đây! 🚀💖");
 
           setTimeout(() => {
@@ -94,6 +96,7 @@ const Calibration = ({ onComplete, userData }) => {
             setIsSyncing(false);
             setLocationError(true);
             setMascotState('shook');
+            if (playSFX) playSFX('meow');
             setBubbleText("Huhu, không có tọa độ Mèo máy không biết phải chăm sóc em thế nào cả... (╯︵╰,)");
           });
         });
@@ -102,10 +105,11 @@ const Calibration = ({ onComplete, userData }) => {
         setIsSyncing(false);
         setLocationError(true);
         setMascotState('shook');
+        if (playSFX) playSFX('meow');
         setBubbleText("Thiết bị của em hỏng 'vươn anten' rồi, buồn quá đi... 😿");
       });
     }
-  }, [userData, resumeCalibration, isReturning]);
+  }, [userData, resumeCalibration, isReturning, playSFX]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -210,7 +214,7 @@ const Calibration = ({ onComplete, userData }) => {
                       }}
                       transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
                     >
-                      <AstroCat state={mascotState} className="w-28 h-28 sm:w-32 sm:h-32 mx-auto" />
+                      <AstroCat state={mascotState} className="w-28 h-28 sm:w-32 sm:h-32 mx-auto" onClick={() => playSFX && playSFX('meow')} />
                     </motion.div>
                   </div>
 
@@ -223,7 +227,7 @@ const Calibration = ({ onComplete, userData }) => {
                     <div className="bg-white/50 p-4 rounded-2xl border border-white">
                       {!locationError && !isSyncing && mascotState !== 'happy' && (
                         <p className="text-slate-600 text-sm font-medium leading-relaxed">
-                          Mèo máy cần biết Huyền đang ở đâu dưới bầu trời này để "hạ cánh" chính xác nhất. Huyền cho phép Mèo máy một xíu nhé? ✨
+                          Mèo máy cần biết em đang ở đâu dưới bầu trời này để "hạ cánh" chính xác nhất. Cho phép Mèo máy một xíu nhé? ✨
                         </p>
                       )}
                       {isSyncing && (

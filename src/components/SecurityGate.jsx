@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ChevronLeft, Sparkles } from 'lucide-react';
 import AstroCat from './AstroCat';
+import { TARGET_NAME } from '../utils/constants';
 
 // --- CÁC ICON CUTE SVG ---
 const CuteHeart = ({ className = "w-8 h-8" }) => (
@@ -116,7 +117,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState({ nickname: '', birthday: '', favoriteFood: '', dislike: '' });
   const [mascotState, setMascotState] = useState('idle');
-  const [bubbleText, setBubbleText] = useState("Привет Huyền! Mèo máy đợi em từ nãy đến giờ nè.");
+  const [bubbleText, setBubbleText] = useState(`Привет ${TARGET_NAME}! Mèo máy đợi em từ nãy đến giờ nè.`);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const [bursts, setBursts] = useState([]);
 
@@ -169,7 +170,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       setBubbleText(steps[currentStep].mascotTalk);
     } else {
       setMascotState('thinking');
-      setBubbleText("Привет Huyền! Mèo máy vểnh tai lắng nghe em nè... 🐾");
+      setBubbleText(`Привет ${TARGET_NAME}! Mèo máy vểnh tai lắng nghe em nè... 🐾`);
     }
   }, [formData[steps[currentStep].id], currentStep]);
 
@@ -250,7 +251,7 @@ const SecurityGate = ({ onComplete, playSFX }) => {
       </motion.div>
       <div className="mt-8 flex items-center gap-2 opacity-60 select-none text-slate-500 font-medium">
         <Sparkles size={12} />
-        <span className="text-[10px] font-bold tracking-[0.3em] uppercase">Personalized for Huyền</span>
+        <span className="text-[10px] font-bold tracking-[0.3em] uppercase">Personalized for {TARGET_NAME}</span>
         <Sparkles size={12} />
       </div>
     </div>

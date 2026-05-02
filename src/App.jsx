@@ -40,6 +40,13 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    // Tự động phát BGM nếu em ấy quay lại các bước sau Welcome
+    if (step !== 'welcome' && !isMuted) {
+      playBGM();
+    }
+  }, [step, isMuted, playBGM]);
+
   const handleStart = () => {
     playBGM();
     play('meow');
@@ -115,7 +122,7 @@ function App() {
         )}
         
         {step === 'calibration' && (
-          <Calibration onComplete={handleCalibrationComplete} userData={userData} />
+          <Calibration onComplete={handleCalibrationComplete} userData={userData} playSFX={play} />
         )}
 
         {step === 'dashboard' && (
