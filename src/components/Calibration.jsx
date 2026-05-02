@@ -41,15 +41,59 @@ const Calibration = ({ onComplete, userData }) => {
     return () => clearInterval(timer);
   }, []);
 
+  // Thêm logic tự động kết nối lại khi quay lại tab hoặc đổi quyền
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && locationError && showLocationPrompt) {
+        handleRequestLocation();
+      }
+    };
+
+    let permissionStatus = null;
+    const watchPermission = async () => {
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+          permissionStatus.onchange = () => {
+            if (permissionStatus.state === 'granted' && locationError && showLocationPrompt) {
+              handleRequestLocation();
+            }
+          };
+        }
+      } catch (e) {
+        console.log("Permissions API not supported");
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    watchPermission();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (permissionStatus) permissionStatus.onchange = null;
+    };
+  }, [locationError, showLocationPrompt]);
+
   const handleRequestLocation = () => {
     setIsSyncing(true);
     setLocationError(false);
     setMascotState('thinking');
     setBubbleText("Đang bắt sóng tín hiệu... Chờ Mèo máy xíu nha! 📡");
 
+    // Tạo thời gian loading tối thiểu 1.2s để UX mượt mà, tránh "giật" UI
+    const minLoading = new Promise(resolve => setTimeout(resolve, 1200));
+
     if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
+      const getLocation = new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { 
+          enableHighAccuracy: true, 
+          timeout: 10000, 
+          maximumAge: 0 // Ép buộc lấy tọa độ mới nhất
+        });
+      });
+
+      Promise.all([getLocation, minLoading])
+        .then(([position]) => {
           const locationData = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
@@ -67,21 +111,23 @@ const Calibration = ({ onComplete, userData }) => {
             setStep(3);
             resumeCalibration();
           }, 2000);
-        },
-        (error) => {
+        })
+        .catch((error) => {
           console.warn("Location denied or error:", error);
-          setIsSyncing(false);
-          setLocationError(true);
-          setMascotState('shook');
-          setBubbleText("Huhu, không có tọa độ Mèo máy không biết bay về đâu để gặp em cả... (╯︵╰,)");
-        },
-        { timeout: 10000 }
-      );
+          minLoading.then(() => {
+            setIsSyncing(false);
+            setLocationError(true);
+            setMascotState('shook');
+            setBubbleText("Huhu, không có tọa độ Mèo máy không biết bay về đâu để gặp em cả... (╯︵╰,)");
+          });
+        });
     } else {
-      setIsSyncing(false);
-      setLocationError(true);
-      setMascotState('shook');
-      setBubbleText("Thiết bị của em không hỗ trợ 'tín hiệu vũ trụ' rồi, buồn quá đi... 😿");
+      minLoading.then(() => {
+        setIsSyncing(false);
+        setLocationError(true);
+        setMascotState('shook');
+        setBubbleText("Thiết bị của em không hỗ trợ 'tín hiệu vũ trụ' rồi, buồn quá đi... 😿");
+      });
     }
   };
 
