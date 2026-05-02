@@ -75,7 +75,7 @@ const Calibration = ({ onComplete, userData }) => {
           setMascotState('shook');
           setBubbleText("Huhu, không có tọa độ Mèo máy không biết bay về đâu để gặp em cả... (╯︵╰,)");
         },
-        { timeout: 10000 }
+        { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
       );
     } else {
       setIsSyncing(false);
