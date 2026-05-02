@@ -128,7 +128,7 @@ const Calibration = ({ onComplete, userData }) => {
                         initial={{ scale: 0, opacity: 0, y: 10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0, opacity: 0, y: 10 }}
-                        className="mb-4 sm:absolute sm:mb-0 sm:-top-4 sm:-right-24 w-full max-w-[180px] sm:w-44 bg-white p-3 rounded-2xl border border-pink-100 text-[11px] font-bold text-pink-600 italic shadow-sm relative"
+                        className="mb-0 sm:absolute sm:mb-0 sm:-top-4 sm:-right-12 w-full max-w-[180px] sm:w-44 bg-white p-3 rounded-2xl border border-pink-100 text-[11px] font-bold text-pink-600 italic shadow-sm relative"
                       >
                         {bubbleText}
                         {/* Mũi tên trỏ xuống cho mobile */}
