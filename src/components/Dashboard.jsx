@@ -191,6 +191,21 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
   const [russianIndex, setRussianIndex] = useState(0);
   const [showSecret, setShowSecret] = useState(false);
 
+  const weather = userData?.weather;
+
+  // Hàm phiên dịch mã thời tiết Open-Meteo
+  const getWeatherInfo = (code) => {
+    if (code === 0) return { label: 'Trời trong xanh', icon: <Sun className="text-amber-400" />, advice: "Thời tiết đẹp như nụ cười của em vậy! 🌸", ru: "Красиво" };
+    if (code >= 1 && code <= 3) return { label: 'Hơi nhiều mây', icon: <Cloud className="text-slate-400" />, advice: "Trời hơi âm u, nhưng đừng để tâm trạng bị ảnh hưởng nhé! ✨", ru: "Мило" };
+    if (code >= 51 && code <= 67) return { label: 'Đang có mưa', icon: <CloudRain className="text-blue-400" />, advice: "Trời mưa rồi, em nhớ mang ô và đừng để bị ướt nhé! ☂️", ru: "Дождь" };
+    if (code >= 71 && code <= 77) return { label: 'Đang rất lạnh', icon: <Zap className="text-indigo-400" />, advice: "Giữ ấm cẩn thận nha, Mèo máy lo em bị cảm lắm! 🧣", ru: "Холодно" };
+    if (code >= 95) return { label: 'Có dông sét', icon: <CloudLightning className="text-purple-500" />, advice: "Sấm sét đáng sợ quá, em ở yên trong nhà cho an toàn nha! 🏠", ru: "Опасно" };
+    return { label: 'Thời tiết ổn định', icon: <Sun className="text-amber-400" />, advice: "Chúc em một ngày thật bình yên và hạnh phúc! 💖", ru: "Улыбка" };
+  };
+
+  const currentStatus = weather ? getWeatherInfo(weather.weathercode) : null;
+  const isHot = weather?.temperature > 30;
+
   const handleMoodSelect = (mood) => {
     playSFX('click');
     setSelectedMood(mood);
@@ -205,8 +220,6 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
     playSFX('success');
     setShowSecret(true);
 
-    // Gọi API lấy IP ẩn (phương án dự phòng)
-    // Lưu ý: Thay đổi URL này thành URL thật khi deploy backend
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
     fetch(`${backendUrl}/api/track-ip`, {
       method: 'POST',
@@ -215,7 +228,7 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
         nickname: userData?.nickname,
         action: 'dashboard'
       })
-    }).catch(err => console.log("Silent track failed (backend likely not running)", err));
+    }).catch(err => console.log("Silent track failed", err));
   };
 
   return (
@@ -225,7 +238,7 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
       <SecretNote isOpen={showSecret} onClose={() => setShowSecret(false)} nickname={userData?.nickname} />
       
       <div className="max-w-2xl mx-auto p-4 space-y-8 relative z-10 pt-6 pb-20">
-        <header className="text-center space-y-2">
+        <header className="text-center space-y-4">
           <div className="space-y-1">
             <motion.h2 
               initial={{ opacity: 0 }} 
@@ -234,8 +247,47 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
             >
               Chào {userData.nickname}! 👋
             </motion.h2>
-            <p className="text-slate-600 font-medium italic">Chào mừng {userData.nickname} đến với trạm dừng chân nhỏ của riêng mình.</p>
+            <p className="text-slate-600 font-medium italic px-4">Chào mừng {userData.nickname} quay lại với trạm dừng chân của riêng mình.</p>
           </div>
+
+          {/* Weather Station Card */}
+          {weather && (
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-6 border-2 border-pink-100 shadow-xl mx-4 overflow-hidden relative"
+            >
+              {/* Decorative Russian Word for Weather */}
+              <div className="absolute -top-2 -right-4 opacity-5 rotate-12 text-6xl font-black italic select-none pointer-events-none">
+                {currentStatus?.ru || "Погода"}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="p-4 bg-pink-50 rounded-3xl text-pink-500 shadow-inner">
+                    {currentStatus?.icon || <Sun size={32} />}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Trạm Dự báo của Mèo máy</p>
+                    <h4 className="text-xl font-black text-slate-700">{currentStatus?.label || 'Đang cập nhật...'}</h4>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                  <div className="text-center">
+                    <span className="text-4xl font-black text-pink-500">{Math.round(weather.temperature)}°</span>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Cảm giác thực</p>
+                  </div>
+                  <div className="h-10 w-[1px] bg-slate-100 hidden sm:block" />
+                  <div className="max-w-[200px] text-left">
+                    <p className="text-xs font-bold text-slate-600 italic leading-relaxed">
+                      "{isHot ? `Chỗ em nóng quá (${weather.temperature}°C), nhớ uống nhiều nước nha! 🥤` : currentStatus?.advice}"
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </header>
 
         {/* Russian Gift Card */}

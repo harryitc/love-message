@@ -11,9 +11,9 @@ import { sendTelegramMessage } from './utils/telegram';
 function App() {
   const [step, setStep] = useState(() => {
     const savedStep = localStorage.getItem('appStep');
-    // Cho phép quay lại dashboard hoặc calibration nếu đã từng vào để không phải làm lại từ đầu
+    // Luôn đưa về calibration nếu đã từng vào, để cập nhật thời tiết thực tế mỗi lần quay lại
     if (savedStep === 'dashboard' || savedStep === 'calibration') {
-      return savedStep;
+      return 'calibration';
     }
     return 'welcome';
   });
@@ -60,7 +60,10 @@ function App() {
     }, 1000);
   };
 
-  const handleCalibrationComplete = () => {
+  const handleCalibrationComplete = (weatherData) => {
+    if (weatherData) {
+      setUserData(prev => ({ ...prev, weather: weatherData }));
+    }
     play('transition');
     setStep('dashboard');
   };
