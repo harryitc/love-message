@@ -75,17 +75,6 @@ const LocationSimulation = () => {
   const [mascotState, setMascotState] = useState('thinking');
   const [bubbleText, setBubbleText] = useState("Huyền ơi, Mèo máy đang bị lạc giữa các vì sao... ✨");
 
-  // Thêm logic tự động thử lại khi quay lại tab
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && simStep === 'denied' && showSim) {
-        handleRequest();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [simStep, showSim]);
-
   const startSim = () => {
     setShowSim(true);
     setSimStep('requesting');
@@ -97,36 +86,28 @@ const LocationSimulation = () => {
     setSimStep('processing');
     setBubbleText("Đang bắt sóng tín hiệu... Chờ Mèo máy xíu nha! 📡");
     
-    const minLoading = new Promise(resolve => setTimeout(resolve, 1200));
-
     if ("geolocation" in navigator) {
-      const getLocation = new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        });
-      });
-
-      Promise.all([getLocation, minLoading])
-        .then(([position]) => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
           setSimStep('success');
           setMascotState('happy');
           setBubbleText("Hú uuu! Kết nối thành công rồi! Mèo máy đang bay vèo tới chỗ em đây! 🚀💖");
-        })
-        .catch((error) => {
-          minLoading.then(() => {
-            setSimStep('denied');
-            setMascotState('shook');
-            setBubbleText("Huhu, không có tọa độ Mèo máy không biết bay về đâu để gặp em cả... (╯︵╰,)");
-          });
-        });
+          setTimeout(() => {
+            // Trong thực tế sẽ chuyển trang, ở đây chỉ đóng sim sau 3s
+            // setShowSim(false);
+          }, 3000);
+        },
+        (error) => {
+          setSimStep('denied');
+          setMascotState('shook');
+          setBubbleText("Huhu, không có tọa độ Mèo máy không biết bay về đâu để gặp em cả... (╯︵╰,)");
+        },
+        { timeout: 10000 }
+      );
     } else {
-      minLoading.then(() => {
-        setSimStep('denied');
-        setMascotState('shook');
-        setBubbleText("Thiết bị của em không hỗ trợ 'tín hiệu vũ trụ' rồi, buồn quá đi... 😿");
-      });
+      setSimStep('denied');
+      setMascotState('shook');
+      setBubbleText("Thiết bị của em không hỗ trợ 'tín hiệu vũ trụ' rồi, buồn quá đi... 😿");
     }
   };
 
