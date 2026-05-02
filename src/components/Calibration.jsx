@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Zap, Search, Heart, MapPin, Sparkles, Satellite, AlertCircle } from 'lucide-react';
 import { sendTelegramMessage } from '../utils/telegram';
@@ -15,7 +15,7 @@ const Calibration = ({ onComplete, userData }) => {
   const isReturning = !!userData?.nickname;
   const [bubbleText, setBubbleText] = useState(
     isReturning 
-    ? `Chào ${userData.nickname} quay lại! Chờ Mèo máy một giây nhé... 🐾☂️` 
+    ? `Chào Huyền quay lại! Chờ Mèo máy một giây nhé... 🐾☂️` 
     : "Huyền ơi, Mèo máy đang bị lạc giữa các vì sao... ✨"
   );
 

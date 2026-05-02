@@ -133,12 +133,12 @@ const SecretNote = ({ isOpen, onClose, nickname }) => {
                     Cảm ơn em đã dành thời gian đọc đến đây.
                   </p>
                   <p>
-                    Chúc {nickname || 'em'} hôm nay (và cả những ngày sau nữa) luôn có thật nhiều điều dễ thương và tỏa sáng như ánh mặt trời nhỏ nhé! ☀️
+                    Chúc em hôm nay (và cả những ngày sau nữa) luôn có thật nhiều điều dễ thương và tỏa sáng như ánh mặt trời nhỏ nhé! ☀️
                   </p>
                 </div>
 
                 <div className="pt-6 border-t border-pink-100 flex justify-between items-center text-slate-400 text-xs uppercase tracking-widest font-bold">
-                  <span>Mèo máy của {nickname || 'em'}</span>
+                  <span>Mèo máy của Huyền</span>
                   <Sparkles size={16} className="text-yellow-400" />
                 </div>
               </div>
@@ -245,9 +245,9 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
               animate={{ opacity: 1 }}
               className="text-3xl font-bold text-slate-800"
             >
-              Chào {userData.nickname}! 👋
+              Chào Huyền! 👋
             </motion.h2>
-            <p className="text-slate-600 font-medium italic px-4">Chào mừng {userData.nickname} quay lại với trạm dừng chân của riêng mình.</p>
+            <p className="text-slate-600 font-medium italic px-4">Chào mừng Huyền quay lại với trạm dừng chân của riêng mình.</p>
           </div>
 
           {/* Weather Station Card */}
