@@ -168,14 +168,24 @@ const Calibration = ({ onComplete, userData }) => {
                         </div>
                       )}
                       {locationError && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-center gap-2 text-rose-500">
-                            <AlertCircle size={18} />
-                            <span className="font-bold text-xs uppercase tracking-wider">Lỗi kết nối</span>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-center gap-2 text-rose-500">
+                              <AlertCircle size={18} />
+                              <span className="font-bold text-xs uppercase tracking-wider">Lỗi kết nối vũ trụ</span>
+                            </div>
+                            <p className="text-slate-600 text-sm font-medium leading-relaxed">
+                              Mèo máy không tìm thấy em rồi... Em hãy bật định vị ở cài đặt, sau đó nhấn nút **Tải lại trang** phía dưới để Mèo máy thử lại nha! 🥺
+                            </p>
                           </div>
-                          <p className="text-slate-600 text-sm font-medium">
-                            Mèo máy không tìm thấy em rồi... Em kiểm tra lại cài đặt vị trí và cho phép Mèo máy nha! 🥺
-                          </p>
+                          
+                          <button 
+                            onClick={() => window.location.reload()}
+                            className="w-full py-3 bg-pink-500 text-white rounded-xl font-bold shadow-lg shadow-pink-100 flex items-center justify-center gap-2 hover:bg-pink-600 active:scale-95 transition-all text-xs"
+                          >
+                            <Loader2 size={16} />
+                            TẢI LẠI TRANG NGAY 🔄
+                          </button>
                         </div>
                       )}
                       {mascotState === 'happy' && (

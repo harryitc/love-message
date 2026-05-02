@@ -11,8 +11,11 @@ import { sendTelegramMessage } from './utils/telegram';
 function App() {
   const [step, setStep] = useState(() => {
     const savedStep = localStorage.getItem('appStep');
-    // Chỉ cho phép vào dashboard nếu đã hoàn thành toàn bộ các bước trước đó, ngược lại quay về welcome
-    return savedStep === 'dashboard' ? 'dashboard' : 'welcome';
+    // Cho phép quay lại dashboard hoặc calibration nếu đã từng vào để không phải làm lại từ đầu
+    if (savedStep === 'dashboard' || savedStep === 'calibration') {
+      return savedStep;
+    }
+    return 'welcome';
   });
   const [userData, setUserData] = useState(() => {
     const saved = localStorage.getItem('userData');
