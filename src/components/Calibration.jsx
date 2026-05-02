@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Zap, Search, Heart, MapPin, Sparkles, Satellite, AlertCircle } from 'lucide-react';
 import { sendTelegramMessage } from '../utils/telegram';
@@ -20,15 +20,9 @@ const Calibration = ({ onComplete, userData }) => {
     { text: "Mọi thứ đã sẵn sàng! Meowww... 🐾", icon: <Zap className="w-5 h-5 text-green-400" /> }
   ];
 
-  useEffect(() => {
+  const resumeCalibration = useCallback(() => {
     const timer = setInterval(() => {
       setStep((prev) => {
-        if (prev === 2) { // Ở bước này, chúng ta sẽ hiện popup xin vị trí
-          clearInterval(timer);
-          setShowLocationPrompt(true);
-          setBubbleText("Em bật 'tín hiệu' để Mèo máy tìm đường về chỗ em nhé! 🐾");
-          return prev;
-        }
         if (prev >= messages.length - 1) {
           clearInterval(timer);
           setTimeout(onComplete, 1000);
@@ -37,58 +31,24 @@ const Calibration = ({ onComplete, userData }) => {
         return prev + 1;
       });
     }, 1500);
+  }, [messages.length, onComplete]);
 
-    return () => clearInterval(timer);
-  }, []);
-
-  // Thêm logic tự động kết nối lại khi quay lại tab hoặc đổi quyền
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && locationError && showLocationPrompt) {
-        handleRequestLocation();
-      }
-    };
-
-    let permissionStatus = null;
-    const watchPermission = async () => {
-      try {
-        if (navigator.permissions && navigator.permissions.query) {
-          permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
-          permissionStatus.onchange = () => {
-            if (permissionStatus.state === 'granted' && locationError && showLocationPrompt) {
-              handleRequestLocation();
-            }
-          };
-        }
-      } catch (e) {
-        console.log("Permissions API not supported");
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    watchPermission();
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      if (permissionStatus) permissionStatus.onchange = null;
-    };
-  }, [locationError, showLocationPrompt]);
-
-  const handleRequestLocation = () => {
+  const handleRequestLocation = useCallback(() => {
+    // Đánh dấu bắt đầu quá trình đồng bộ
     setIsSyncing(true);
     setLocationError(false);
     setMascotState('thinking');
     setBubbleText("Đang bắt sóng tín hiệu... Chờ Mèo máy xíu nha! 📡");
 
-    // Tạo thời gian loading tối thiểu 1.2s để UX mượt mà, tránh "giật" UI
-    const minLoading = new Promise(resolve => setTimeout(resolve, 1200));
+    // Tạo thời gian loading tối thiểu 1.5s để UX mượt mà
+    const minLoading = new Promise(resolve => setTimeout(resolve, 1500));
 
     if ("geolocation" in navigator) {
       const getLocation = new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, { 
           enableHighAccuracy: true, 
           timeout: 10000, 
-          maximumAge: 0 // Ép buộc lấy tọa độ mới nhất
+          maximumAge: 0 // Ép buộc lấy tọa độ mới nhất, không dùng cache
         });
       });
 
@@ -114,6 +74,7 @@ const Calibration = ({ onComplete, userData }) => {
         })
         .catch((error) => {
           console.warn("Location denied or error:", error);
+          // Chỉ tắt loading sau khi đã đủ thời gian tối thiểu
           minLoading.then(() => {
             setIsSyncing(false);
             setLocationError(true);
@@ -129,11 +90,17 @@ const Calibration = ({ onComplete, userData }) => {
         setBubbleText("Thiết bị của em không hỗ trợ 'tín hiệu vũ trụ' rồi, buồn quá đi... 😿");
       });
     }
-  };
+  }, [userData, resumeCalibration]);
 
-  const resumeCalibration = () => {
+  useEffect(() => {
     const timer = setInterval(() => {
       setStep((prev) => {
+        if (prev === 2) {
+          clearInterval(timer);
+          setShowLocationPrompt(true);
+          setBubbleText("Em bật 'tín hiệu' để Mèo máy tìm đường về chỗ em nhé! 🐾");
+          return prev;
+        }
         if (prev >= messages.length - 1) {
           clearInterval(timer);
           setTimeout(onComplete, 1000);
@@ -142,7 +109,44 @@ const Calibration = ({ onComplete, userData }) => {
         return prev + 1;
       });
     }, 1500);
-  };
+
+    return () => clearInterval(timer);
+  }, [messages.length, onComplete]);
+
+  // Thêm logic tự động kết nối lại khi quay lại tab hoặc đổi quyền
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Khi quay lại tab và đang ở trạng thái lỗi, tự động thử lại
+      if (document.visibilityState === 'visible' && locationError && showLocationPrompt && !isSyncing) {
+        handleRequestLocation();
+      }
+    };
+
+    let permissionStatus = null;
+    const watchPermission = async () => {
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+          permissionStatus.onchange = () => {
+            // Ngay khi trạng thái quyền chuyển sang 'granted', tự động thử lại
+            if (permissionStatus.state === 'granted' && locationError && showLocationPrompt && !isSyncing) {
+              handleRequestLocation();
+            }
+          };
+        }
+      } catch (e) {
+        console.log("Permissions API not supported for geolocation");
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    watchPermission();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (permissionStatus) permissionStatus.onchange = null;
+    };
+  }, [locationError, showLocationPrompt, isSyncing, handleRequestLocation]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] text-center p-6 relative">
@@ -174,7 +178,7 @@ const Calibration = ({ onComplete, userData }) => {
                         initial={{ scale: 0, opacity: 0, y: 10 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0, opacity: 0, y: 10 }}
-                        className="mb-0 sm:absolute sm:mb-0 sm:-top-4 sm:-right-12 w-full max-w-[180px] sm:w-44 bg-white p-3 rounded-2xl border border-pink-100 text-[11px] font-bold text-pink-600 italic shadow-sm relative"
+                        className="mb-4 sm:absolute sm:mb-0 sm:-top-4 sm:-right-24 w-full max-w-[180px] sm:w-44 bg-white p-3 rounded-2xl border border-pink-100 text-[11px] font-bold text-pink-600 italic shadow-sm relative"
                       >
                         {bubbleText}
                         {/* Mũi tên trỏ xuống cho mobile */}
