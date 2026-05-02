@@ -276,7 +276,7 @@ const Calibration = ({ onComplete, userData }) => {
                         animate={{ scale: 1 }}
                         className="bg-green-100 text-green-700 font-black py-4 rounded-2xl flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
                       >
-                        ĐANG ĐƯA EM ĐẾN DASHBOARD...
+                        ĐANG ĐƯA EM ĐẾN TRẠM DỪNG CHÂN...
                       </motion.div>
                     ) : (
                       <motion.button 

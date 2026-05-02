@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish } from 'lucide-react';
+import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish, Satellite } from 'lucide-react';
 
 const moods = [
   { 
@@ -250,39 +250,45 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
             <p className="text-slate-600 font-medium italic px-4">Chào mừng Huyền quay lại với trạm dừng chân của riêng mình.</p>
           </div>
 
-          {/* Weather Station Card */}
+          {/* Weather Station Card - Mobile Optimized */}
           {weather && (
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-6 border-2 border-pink-100 shadow-xl mx-4 overflow-hidden relative"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              whileHover={{ scale: 1.01 }}
+              className="bg-white/70 backdrop-blur-md rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-8 border-2 border-pink-100 shadow-xl shadow-pink-50/50 mx-2 sm:mx-4 relative overflow-hidden group"
             >
-              {/* Decorative Russian Word for Weather */}
-              <div className="absolute -top-2 -right-4 opacity-5 rotate-12 text-6xl font-black italic select-none pointer-events-none">
-                {currentStatus?.ru || "Погода"}
+              <div className="flex items-center gap-2 sm:gap-3 mb-5 sm:mb-6">
+                <div className="p-2 bg-pink-50 rounded-xl text-pink-500">
+                  <Satellite size={16} className="sm:w-[18px] sm:h-[18px]" />
+                </div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-700">Trạm Thời tiết của Mèo máy</h3>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 relative z-10">
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-pink-50 rounded-3xl text-pink-500 shadow-inner">
-                    {currentStatus?.icon || <Sun size={32} />}
-                  </div>
+              <div className="flex flex-col gap-6 sm:grid sm:grid-cols-2 sm:gap-8 items-center">
+                <div className="flex items-center gap-5 sm:gap-6 justify-start w-full sm:w-auto">
+                  <motion.div 
+                    animate={{ y: [0, -4, 0] }}
+                    transition={{ repeat: Infinity, duration: 3 }}
+                    className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-pink-50 to-purple-50 rounded-[1.5rem] sm:rounded-3xl flex items-center justify-center text-pink-500 shadow-inner border border-white shrink-0"
+                  >
+                    {React.cloneElement(currentStatus?.icon || <Sun />, { size: window.innerWidth < 640 ? 32 : 40 })}
+                  </motion.div>
                   <div className="text-left">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Trạm Dự báo của Mèo máy</p>
-                    <h4 className="text-xl font-black text-slate-700">{currentStatus?.label || 'Đang cập nhật...'}</h4>
+                    <div className="flex items-baseline gap-0.5 sm:gap-1">
+                      <span className="text-4xl sm:text-5xl font-black text-slate-800 tracking-tighter">{Math.round(weather.temperature)}°</span>
+                      <span className="text-base sm:text-lg font-bold text-pink-400">C</span>
+                    </div>
+                    <p className="text-[11px] sm:text-sm font-bold text-slate-500 uppercase tracking-tighter mt-0.5 sm:mt-1">{currentStatus?.label}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-6">
-                  <div className="text-center">
-                    <span className="text-4xl font-black text-pink-500">{Math.round(weather.temperature)}°</span>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">Cảm giác thực</p>
-                  </div>
-                  <div className="h-10 w-[1px] bg-slate-100 hidden sm:block" />
-                  <div className="max-w-[200px] text-left">
-                    <p className="text-xs font-bold text-slate-600 italic leading-relaxed">
-                      "{isHot ? `Chỗ em nóng quá (${weather.temperature}°C), nhớ uống nhiều nước nha! 🥤` : currentStatus?.advice}"
-                    </p>
+                <div className="bg-pink-50/50 p-4 sm:p-5 rounded-[1.25rem] sm:rounded-[1.5rem] border border-pink-100/50 relative w-full">
+                  <p className="text-xs sm:text-sm font-medium text-slate-600 italic leading-relaxed text-left">
+                    "{isHot ? `Chỗ em nóng quá (${weather.temperature}°C), nhớ uống nhiều nước và đừng đi nắng lâu nha! 🥤` : currentStatus?.advice}"
+                  </p>
+                  <div className="absolute -bottom-2 -right-1 opacity-[0.07] font-black text-3xl sm:text-4xl italic text-pink-600 select-none pointer-events-none">
+                    {currentStatus?.ru || "Погода"}
                   </div>
                 </div>
               </div>
