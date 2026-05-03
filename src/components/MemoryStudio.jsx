@@ -49,7 +49,7 @@ const MemoryStudio = ({ path, drink, onClose, playSFX }) => {
 
     markerRef.current = L.marker([path[0].lat, path[0].lng], {
       icon: L.divIcon({
-        html: `<div class="studio-cat"><img src="/favicon.svg" style="width: 50px; height: 50px;" /></div>`,
+        html: `<div class="studio-cat"><img src="/cat-marker.svg" style="width: 50px; height: 50px;" /></div>`,
         className: 'custom-div-icon',
         iconSize: [50, 50],
         iconAnchor: [25, 25]

@@ -7,7 +7,7 @@ import MemoryStudio from './MemoryStudio';
 
 // --- Custom Icons for Map ---
 const createCatIcon = () => L.divIcon({
-  html: `<div class="cat-marker"><img src="/favicon.svg" style="width: 40px; height: 40px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" /></div>`,
+  html: `<div class="cat-marker"><img src="/cat-marker.svg" style="width: 40px; height: 40px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" /></div>`,
   className: 'custom-div-icon',
   iconSize: [40, 40],
   iconAnchor: [20, 40]
