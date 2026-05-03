@@ -58,6 +58,7 @@ const ShipSimulator = ({ playSFX }) => {
       });
       if (res.ok) {
         setIsReady(true);
+        setCurrentIndex(0);
         if (playSFX) playSFX('success');
       }
     } catch (e) {
@@ -72,11 +73,12 @@ const ShipSimulator = ({ playSFX }) => {
       timerRef.current = setInterval(() => {
         setCurrentIndex(prev => {
           const next = (prev + 1) % ROMANTIC_ROUTE.length;
-          // Phát tọa độ giả lập qua Socket
+          // Phát tọa độ giả lập qua Socket kèm timestamp
           if (socketRef.current) {
             socketRef.current.emit('updateLocation', {
               lat: ROMANTIC_ROUTE[next][0],
-              lng: ROMANTIC_ROUTE[next][1]
+              lng: ROMANTIC_ROUTE[next][1],
+              t: Date.now()
             });
           }
           return next;

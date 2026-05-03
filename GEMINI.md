@@ -24,9 +24,11 @@
 - **Báo cáo Telegram:** Tự động gửi tọa độ GPS kèm link Google Maps về bot Telegram ngay khi em ấy đồng ý.
 
 ### 4. Tính năng "Ship-Love" (Astro-Tracker)
-- **Hành trình Live:** Cho phép Huyền theo dõi vị trí thực tế của bạn khi đang ship đồ ăn/nước uống thông qua bản đồ Live GPS.
+- **Hành trình Ultra-Live:** Sử dụng **WebSockets** để cập nhật vị trí thời gian thực với độ trễ bằng 0.
 - **Tương tác Shipper:** Mascot AstroCat đóng vai shipper, để lại vết chân mèo hồng trên bản đồ và giao tiếp bằng tiếng Nga (*Я еду к тебе!*).
-- **Thông báo Dashboard:** Tự động hiện radar thông báo trên Dashboard của Huyền khi có chuyến xe đang hoạt động.
+- **Chỉ đường & Ghi lại:** Shipper có thể nhập địa chỉ để mở Google Maps Directions và bật chế độ **Live Recording** để tăng tính kỷ niệm.
+- **Báo cáo Telegram 🏁:** Tự động gửi báo cáo tổng kết khi nhấn "Đã tới nơi", bao gồm: Quãng đường (km), thời gian (phút), lời nhắn, và link lộ trình tổng hợp.
+- **Astro-Simulator:** Trang mô phỏng lộ trình lãng mạn tại `/ship-demo` để chạy thử nghiệm mà không cần di chuyển thật.
 - **Route:** `/ship-love` (Dành cho Huyền) và `/ship-love?mode=ship` (Dành cho bạn).
 
 ### 3. Hiệu ứng Thị giác & Ngôn ngữ
