@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navigation, Coffee, Heart, Home, ArrowRight, Loader2, MapPin, Send, MessageCircle, Film } from 'lucide-react';
+import { Navigation, Coffee, Heart, Home, ArrowRight, Loader2, MapPin, Send, MessageCircle, Film, CheckCircle2 } from 'lucide-react';
 import { TARGET_NAME, APP_CONFIG } from '../utils/constants';
 import AstroCat from './AstroCat';
 import MemoryStudio from './MemoryStudio';
@@ -11,13 +11,6 @@ const createCatIcon = () => L.divIcon({
   className: 'custom-div-icon',
   iconSize: [40, 40],
   iconAnchor: [20, 40]
-});
-
-const createHomeIcon = () => L.divIcon({
-  html: `<div class="home-marker bg-white p-2 rounded-full border-2 border-pink-400 shadow-lg text-pink-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>`,
-  className: 'custom-div-icon',
-  iconSize: [40, 40],
-  iconAnchor: [20, 20]
 });
 
 const ShipLove = ({ playSFX }) => {
@@ -53,17 +46,22 @@ const ShipLove = ({ playSFX }) => {
     socketRef.current.on('shipmentStatus', (data) => {
       if (data.active) {
         setActiveShipment(data);
+        setRecordedPath(data.path || []);
         updateMap(data.lat, data.lng, data.path);
         setMascotState('happy');
         setBubbleText(`Я еду к тебе! (Anh đang mang ${data.drink} tới cho em đây!) 🐾`);
       }
     });
 
-    socketRef.current.on('locationUpdated', (data) => updateMap(data.lat, data.lng, data.path));
+    socketRef.current.on('locationUpdated', (data) => {
+      setRecordedPath(data.path || []);
+      updateMap(data.lat, data.lng, data.path);
+    });
 
     socketRef.current.on('shipmentStarted', (data) => {
       setActiveShipment(data);
       setHasArrived(false);
+      setRecordedPath(data.path || []);
       updateMap(data.lat, data.lng, data.path);
       if (playSFX) playSFX('meow');
     });
@@ -96,6 +94,7 @@ const ShipLove = ({ playSFX }) => {
     const pos = [lat, lng];
     if (!markerRef.current) markerRef.current = L.marker(pos, { icon: createCatIcon() }).addTo(mapRef.current);
     else markerRef.current.setLatLng(pos);
+    
     if (path && path.length > 1) {
       const polyCoords = path.map(p => [p.lat, p.lng]);
       if (!pathRef.current) pathRef.current = L.polyline(polyCoords, { color: '#ffb6c1', weight: 4, dashArray: '10, 10' }).addTo(mapRef.current);
@@ -169,7 +168,7 @@ const ShipLove = ({ playSFX }) => {
         )}
       </AnimatePresence>
 
-      {/* Live Recording Indicator */}
+      {/* Live Recording Indicator (For Shipper) */}
       <AnimatePresence>
         {isRecording && mode === 'ship' && (
           <motion.div 
@@ -184,29 +183,53 @@ const ShipLove = ({ playSFX }) => {
         )}
       </AnimatePresence>
 
+      {/* Celebration/Summary Overlay (For both) */}
       <AnimatePresence>
-        {hasArrived && mode === 'track' && (
+        {hasArrived && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[2000] bg-pink-500/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
-            <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", damping: 12 }} className="space-y-8">
-              <div className="relative">
+            <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", damping: 12 }} className="space-y-8 max-w-sm w-full">
+              <div className="relative flex justify-center">
                 <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full" />
                 <AstroCat state="happy" className="w-48 h-48 relative z-10" onClick={() => playSFX('meow')} />
               </div>
+              
               <div className="space-y-4">
-                <h2 className="text-4xl font-black text-white tracking-tighter">MÓN QUÀ ĐÃ ĐẾN! 🌸</h2>
-                <p className="text-pink-100 text-lg font-medium italic">"{activeShipment?.message || "Chúc em một ngày ngọt ngào như món nước này nhé!"}"</p>
+                <h2 className="text-4xl font-black text-white tracking-tighter">
+                  {mode === 'ship' ? "NHIỆM VỤ HOÀN THÀNH!" : "MÓN QUÀ ĐÃ ĐẾN!"} 🌸
+                </h2>
+                <p className="text-pink-100 text-lg font-medium italic">
+                  {mode === 'ship' ? "Bạn đã mang niềm vui đến cho Huyền rồi đó!" : `"${activeShipment?.message || "Chúc em một ngày ngọt ngào!"}"`}
+                </p>
               </div>
+              
               <div className="flex flex-col gap-3">
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowStudio(true)} className="px-10 py-4 bg-slate-900 text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2"><Film size={18} className="text-pink-400" /> Xem Phim Kỷ Niệm 🎬</motion.button>
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setHasArrived(false)} className="px-10 py-4 bg-white text-pink-500 font-black rounded-2xl shadow-xl uppercase tracking-widest text-sm">Tuyệt vời quá! 💖</motion.button>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} 
+                  onClick={() => setShowStudio(true)} 
+                  className="px-10 py-4 bg-slate-900 text-white font-black rounded-2xl shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+                >
+                  <Film size={18} className="text-pink-400" /> Xem Phim Kỷ Niệm 🎬
+                </motion.button>
+                
+                <motion.button 
+                  whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} 
+                  onClick={mode === 'ship' ? stopDelivery : () => setHasArrived(false)} 
+                  className="px-10 py-4 bg-white text-pink-500 font-black rounded-2xl shadow-xl uppercase tracking-widest text-sm flex items-center justify-center gap-2"
+                >
+                  <CheckCircle2 size={18} /> {mode === 'ship' ? "KẾT THÚC" : "TUYỆT VỜI QUÁ! 💖"}
+                </motion.button>
               </div>
             </motion.div>
+            
+            {/* Floating Hearts Animation */}
             {[...Array(15)].map((_, i) => (
               <motion.div key={i} initial={{ y: "100vh", x: Math.random() * 100 + "vw", scale: 0 }} animate={{ y: "-10vh", scale: Math.random() * 1.5 + 0.5, rotate: 360 }} transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 2 }} className="absolute text-white/40 pointer-events-none"><Heart fill="currentColor" size={Math.random() * 20 + 20} /></motion.div>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Top Header */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4 flex justify-between items-center bg-white/60 backdrop-blur-md border-b border-pink-100">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-pink-100 rounded-lg text-pink-500"><Navigation size={20} className={activeShipment?.active ? "animate-pulse" : ""} /></div>
@@ -214,7 +237,10 @@ const ShipLove = ({ playSFX }) => {
         </div>
         <button onClick={() => window.location.href = '/'} className="p-2 text-slate-400 hover:text-pink-500 transition-colors"><Home size={20} /></button>
       </div>
+
       <div id="map" className="flex-grow z-0" />
+
+      {/* Mascot Interaction Overlay (For Tracker) */}
       {mode === 'track' && activeShipment?.active && (
         <div className="absolute top-20 left-4 right-4 z-[1000] pointer-events-none">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">
@@ -227,6 +253,8 @@ const ShipLove = ({ playSFX }) => {
           </motion.div>
         </div>
       )}
+
+      {/* Control Panel (Bottom) */}
       <div className="absolute bottom-6 left-4 right-4 z-[1000]">
         <AnimatePresence mode="wait">
           {mode === 'ship' ? (
