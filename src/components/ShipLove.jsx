@@ -152,6 +152,8 @@ const ShipLove = ({ playSFX }) => {
     setActiveShipment(null);
     setHasArrived(false);
     setIsRecording(false);
+  };
+
   return (
     <div className="relative h-screen w-full overflow-hidden bg-slate-50 flex flex-col">
       {/* Memory Studio Overlay */}
@@ -166,8 +168,6 @@ const ShipLove = ({ playSFX }) => {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {hasArrived && (
       {/* Celebration/Summary Overlay (For both) */}
       <AnimatePresence>
         {hasArrived && (
