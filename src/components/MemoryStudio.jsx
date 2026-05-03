@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, FastForward, SkipBack, X, Film, Download, Heart } from 'lucide-react';
+import { Play, FastForward, SkipBack, X, Film, Download, Heart, Loader2 } from 'lucide-react';
 import AstroCat from './AstroCat';
 
 const MemoryStudio = ({ path, drink, onClose, playSFX }) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState(5); // Nhanh gấp 5 lần thực tế
+  const [showGuide, setShowGuide] = useState(false);
+  
   const mapRef = useRef(null);
   const markerRef = useRef(null);
   const lineRef = useRef(null);
   const timerRef = useRef(null);
+  const recorderRef = useRef(null);
 
   useEffect(() => {
     // Khởi tạo bản đồ mini cho studio
@@ -34,6 +37,11 @@ const MemoryStudio = ({ path, drink, onClose, playSFX }) => {
     setIsPlaying(true);
     setCurrentIndex(0);
     if (playSFX) playSFX('transition');
+
+    // Nếu đang recording thì bắt đầu recorder
+    if (isRecording && window.RecordRTC) {
+      startScreenCapture();
+    }
 
     // Xóa các marker cũ nếu có
     if (markerRef.current) markerRef.current.remove();
@@ -64,7 +72,62 @@ const MemoryStudio = ({ path, drink, onClose, playSFX }) => {
       markerRef.current.setLatLng(pos);
       lineRef.current.addLatLng(pos);
       mapRef.current.panTo(pos, { animate: true, duration: 0.2 });
-    }, 100); // Phát lại nhanh
+    }, 100); 
+  };
+
+  const startScreenCapture = async () => {
+    try {
+      // Hiển thị bảng chọn màn hình của trình duyệt
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: { width: 1280, height: 720 },
+        audio: false
+      });
+      
+      // @ts-ignore
+      recorderRef.current = new RecordRTC(stream, {
+        type: 'video',
+        mimeType: 'video/webm'
+      });
+      recorderRef.current.startRecording();
+    } catch (e) {
+      console.error("Capture failed", e);
+      setIsRecording(false);
+    }
+  };
+
+  const stopAndDownload = () => {
+    if (recorderRef.current) {
+      recorderRef.current.stopRecording(() => {
+        const blob = recorderRef.current.getBlob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Astro-Trip-${drink}-${Date.now()}.webm`;
+        a.click();
+        
+        // Dừng tất cả các tracks để tắt đèn xanh của trình duyệt
+        recorderRef.current.stream.getTracks().forEach(track => track.stop());
+        setIsRecording(false);
+      });
+    }
+  };
+
+  // Tự động dừng quay và tải xuống khi phim kết thúc
+  useEffect(() => {
+    if (currentIndex === path.length - 1 && isRecording) {
+      setTimeout(stopAndDownload, 1000);
+    }
+  }, [currentIndex, isRecording]);
+
+  const handlePrepareRecord = () => {
+    setShowGuide(true);
+  };
+
+  const startRecordWorkflow = () => {
+    setShowGuide(false);
+    setIsRecording(true);
+    // Đợi UI render xong rồi mới gọi capture
+    setTimeout(startReplay, 500);
   };
 
   return (
@@ -74,6 +137,45 @@ const MemoryStudio = ({ path, drink, onClose, playSFX }) => {
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[3000] bg-slate-950 flex flex-col items-center justify-center p-4"
     >
+      {/* Hướng dẫn Recording */}
+      <AnimatePresence>
+        {showGuide && (
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="fixed inset-0 z-[4000] bg-black/80 backdrop-blur-md flex items-center justify-center p-6"
+          >
+            <div className="bg-white rounded-[2.5rem] p-8 max-w-sm w-full text-center space-y-6 shadow-2xl border-4 border-pink-100">
+              <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto">
+                <Film className="text-pink-500" size={40} />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-black text-slate-800 uppercase">Chuẩn bị máy quay! 🎬</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Để tải video, Mèo máy cần bạn cho phép "Quay màn hình". <br/><br/>
+                  Khi bảng hiện lên, hãy chọn **"Tab này"** (This Tab) rồi nhấn **Share** nhé!
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={startRecordWorkflow}
+                  className="w-full py-4 bg-pink-500 text-white font-black rounded-2xl shadow-lg active:scale-95 transition-all"
+                >
+                  SẴN SÀNG RỒI! 🚀
+                </button>
+                <button 
+                  onClick={() => setShowGuide(false)}
+                  className="w-full py-3 text-slate-400 font-bold text-xs uppercase"
+                >
+                  ĐỂ SAU NHA
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Phông nền Cinematic */}
       <div className="absolute inset-0 opacity-20 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-white to-transparent" />
@@ -126,21 +228,27 @@ const MemoryStudio = ({ path, drink, onClose, playSFX }) => {
         <div className="flex items-center gap-4">
           <button 
             onClick={startReplay}
-            disabled={isPlaying}
+            disabled={isPlaying || isRecording}
             className="w-16 h-16 bg-pink-500 text-white rounded-full flex items-center justify-center shadow-xl shadow-pink-500/30 hover:scale-110 active:scale-95 transition-all disabled:opacity-50"
           >
-            {isPlaying ? <Loader2 className="animate-spin" /> : <Play fill="currentColor" />}
+            {isPlaying || isRecording ? <Loader2 className="animate-spin" /> : <Play fill="currentColor" />}
           </button>
         </div>
 
         <div className="space-y-2 text-center">
-          <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.3em]">Astro-Studio v1.0</p>
+          <p className="text-slate-400 text-xs font-bold uppercase tracking-[0.3em]">Astro-Studio v1.1</p>
           <p className="text-white/60 text-[10px] italic">"Ghi lại từng bước chân, lưu giữ mọi kỷ niệm."</p>
         </div>
 
         <div className="flex gap-4">
-           <button className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-white/10 transition-all opacity-50 cursor-not-allowed">
-             <Download size={14} /> Tải Video (Sắp có)
+           <button 
+             onClick={handlePrepareRecord}
+             disabled={isPlaying || isRecording}
+             className={`px-6 py-3 border-2 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${
+               isRecording ? 'bg-red-500 border-red-500 text-white animate-pulse' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+             }`}
+           >
+             <Film size={14} /> {isRecording ? "Đang quay phim..." : "Quay & Tải Video"}
            </button>
         </div>
       </div>

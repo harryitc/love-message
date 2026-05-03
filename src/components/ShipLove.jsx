@@ -152,8 +152,6 @@ const ShipLove = ({ playSFX }) => {
     setActiveShipment(null);
     setHasArrived(false);
     setIsRecording(false);
-  };
-
   return (
     <div className="relative h-screen w-full overflow-hidden bg-slate-50 flex flex-col">
       {/* Memory Studio Overlay */}
@@ -168,21 +166,8 @@ const ShipLove = ({ playSFX }) => {
         )}
       </AnimatePresence>
 
-      {/* Live Recording Indicator (For Shipper) */}
       <AnimatePresence>
-        {isRecording && mode === 'ship' && (
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="absolute top-20 left-4 z-[1001] bg-red-500 text-white px-3 py-1.5 rounded-full text-[10px] font-black uppercase flex items-center gap-2 shadow-lg"
-          >
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-            Live Recording Hành trình...
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+        {hasArrived && (
       {/* Celebration/Summary Overlay (For both) */}
       <AnimatePresence>
         {hasArrived && (
