@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish, Satellite } from 'lucide-react';
-import { TARGET_NAME } from '../utils/constants';
+import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish, Satellite, ArrowRight } from 'lucide-react';
+import { TARGET_NAME, APP_CONFIG } from '../utils/constants';
 
 const moods = [
   { 
@@ -191,8 +191,25 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
   const [selectedMood, setSelectedMood] = useState(null);
   const [russianIndex, setRussianIndex] = useState(0);
   const [showSecret, setShowSecret] = useState(false);
+  const [activeShipment, setActiveShipment] = useState(false);
 
   const weather = userData?.weather;
+
+  // Kiểm tra xem có chuyến xe nào đang chạy không
+  useEffect(() => {
+    const checkShipment = async () => {
+      try {
+        const res = await fetch(`${APP_CONFIG.BACKEND_URL}/api/ship/status`);
+        const data = await res.json();
+        setActiveShipment(data.active);
+      } catch (e) {
+        console.log("Failed to check shipment status");
+      }
+    };
+    checkShipment();
+    const timer = setInterval(checkShipment, 10000); // Check mỗi 10s
+    return () => clearInterval(timer);
+  }, []);
 
   // Hàm phiên dịch mã thời tiết Open-Meteo
   const getWeatherInfo = (code) => {
@@ -295,6 +312,35 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
               </div>
             </motion.div>
           )}
+
+          {/* Ship-Love Active Notification */}
+          <AnimatePresence>
+            {activeShipment && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                onClick={() => window.location.href = '/ship-love'}
+                className="bg-gradient-to-r from-pink-400 to-purple-500 rounded-[2rem] p-4 mx-4 shadow-lg shadow-pink-200 cursor-pointer group relative overflow-hidden"
+              >
+                <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:scale-125 transition-transform">
+                   <Coffee size={64} className="text-white" />
+                </div>
+                <div className="relative z-10 flex items-center justify-between px-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white">
+                      <Satellite className="animate-pulse" />
+                    </div>
+                    <div className="text-left text-white">
+                      <p className="text-[10px] font-black uppercase tracking-widest opacity-80">Tín hiệu vũ trụ</p>
+                      <p className="font-bold text-sm">Có một món quà đang bay tới chỗ em! 🚀</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </header>
 
         {/* Russian Gift Card */}

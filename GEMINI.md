@@ -23,6 +23,12 @@
 - **Giao diện Soft-Glass:** Popup xin quyền vị trí được thiết kế theo phong cách Glassmorphism hồng pastel, bo cong mềm mại, tạo cảm giác an tâm và dễ chịu.
 - **Báo cáo Telegram:** Tự động gửi tọa độ GPS kèm link Google Maps về bot Telegram ngay khi em ấy đồng ý.
 
+### 4. Tính năng "Ship-Love" (Astro-Tracker)
+- **Hành trình Live:** Cho phép Huyền theo dõi vị trí thực tế của bạn khi đang ship đồ ăn/nước uống thông qua bản đồ Live GPS.
+- **Tương tác Shipper:** Mascot AstroCat đóng vai shipper, để lại vết chân mèo hồng trên bản đồ và giao tiếp bằng tiếng Nga (*Я еду к тебе!*).
+- **Thông báo Dashboard:** Tự động hiện radar thông báo trên Dashboard của Huyền khi có chuyến xe đang hoạt động.
+- **Route:** `/ship-love` (Dành cho Huyền) và `/ship-love?mode=ship` (Dành cho bạn).
+
 ### 3. Hiệu ứng Thị giác & Ngôn ngữ
 - **Floating Words:** Các từ tiếng Nga ý nghĩa bay bồng bềnh khắp màn hình ở cả trang `Welcome` và `Dashboard`. Hiệu ứng có độ đậm (70%) và đung đưa (sway) tự nhiên.
 - **Looping Typing:** Dòng chữ *"Для тебя ♡"* tại trang chào mừng được lặp lại liên tục, tạo cảm giác lời nhắn nhủ luôn hiện hữu.
@@ -34,6 +40,7 @@
 
 ## 📁 Cấu trúc Thư mục Quan trọng
 - `src/components/AstroCat.jsx`: Trái tim của sự tương tác, quản lý Mascot và lời thoại ngẫu nhiên.
+- `src/components/ShipLove.jsx`: Quản lý logic bản đồ và theo dõi GPS Live cho tính năng Ship-Love.
 - `src/components/Calibration.jsx`: Quản lý logic Geolocation và giao diện xin quyền vị trí.
 - `src/utils/telegram.js`: Xử lý gửi báo cáo tổng hợp về Bot (Info + GPS).
 

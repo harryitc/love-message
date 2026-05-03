@@ -4,6 +4,8 @@ import SecurityGate from './components/SecurityGate';
 import Calibration from './components/Calibration';
 import Dashboard from './components/Dashboard';
 import MascotDemo from './components/MascotDemo';
+import ShipLove from './components/ShipLove';
+import ShipSimulator from './components/ShipSimulator';
 import useSound from './hooks/useSound';
 import SoundControl from './components/SoundControl';
 import { sendTelegramMessage } from './utils/telegram';
@@ -11,6 +13,12 @@ import { sendTelegramMessage } from './utils/telegram';
 function App() {
   const [step, setStep] = useState(() => {
     const savedStep = localStorage.getItem('appStep');
+    // Kiểm tra route hiện tại
+    const path = window.location.pathname;
+    if (path === '/ship-love') return 'ship-love';
+    if (path === '/ship-demo') return 'ship-demo';
+    if (path === '/demo') return 'demo';
+
     // Luôn đưa về calibration nếu đã từng vào, để cập nhật thời tiết thực tế mỗi lần quay lại
     if (savedStep === 'dashboard' || savedStep === 'calibration') {
       return 'calibration';
@@ -21,28 +29,22 @@ function App() {
     const saved = localStorage.getItem('userData');
     return saved ? JSON.parse(saved) : null;
   });
-  const [isDemo, setIsDemo] = useState(false);
   
   const { isMuted, play, playBGM, toggleMute } = useSound();
 
   // Lưu trạng thái vào localStorage khi thay đổi
   useEffect(() => {
-    localStorage.setItem('appStep', step);
+    if (step !== 'ship-love' && step !== 'demo') {
+      localStorage.setItem('appStep', step);
+    }
     if (userData) {
       localStorage.setItem('userData', JSON.stringify(userData));
     }
   }, [step, userData]);
 
   useEffect(() => {
-    // Kiểm tra nếu URL có chứa /demo
-    if (window.location.pathname === '/demo') {
-      setIsDemo(true);
-    }
-  }, []);
-
-  useEffect(() => {
     // Tự động phát BGM nếu em ấy quay lại các bước sau Welcome
-    if (step !== 'welcome' && !isMuted) {
+    if (step !== 'welcome' && step !== 'ship-love' && !isMuted) {
       playBGM();
     }
   }, [step, isMuted, playBGM]);
@@ -77,10 +79,10 @@ function App() {
 
   const resetApp = () => {
     localStorage.clear();
-    window.location.reload();
+    window.location.href = '/';
   };
 
-  if (isDemo) {
+  if (step === 'demo') {
     return (
       <div className="min-h-screen bg-[#f8fafc] p-4 flex items-center justify-center">
         <MascotDemo />
@@ -100,6 +102,14 @@ function App() {
         </div>
       </div>
     );
+  }
+
+  if (step === 'ship-love') {
+    return <ShipLove playSFX={play} />;
+  }
+
+  if (step === 'ship-demo') {
+    return <ShipSimulator playSFX={play} />;
   }
 
   return (

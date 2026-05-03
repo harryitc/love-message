@@ -9,3 +9,35 @@ body {
 .glass-card {
   @apply bg-white/70 backdrop-blur-md border border-white/30 shadow-xl;
 }
+
+/* Leaflet Custom Markers */
+.custom-div-icon {
+  background: none !important;
+  border: none !important;
+}
+
+.cat-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.5s ease-in-out;
+}
+
+.home-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  animation: float 3s infinite ease-in-out;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Fix Leaflet Z-index */
+.leaflet-container {
+  z-index: 1 !important;
+}
