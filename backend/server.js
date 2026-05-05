@@ -58,22 +58,30 @@ io.on('connection', (socket) => {
     if (currentShipment.active && data.points && data.points.length > 0) {
       console.log(`Syncing batch of ${data.points.length} points for ${socket.id}`);
       
-      data.points.forEach(point => {
-        const t = point.t || Date.now();
-        currentShipment.path.push({ lat: point.lat, lng: point.lng, t });
-      });
+      // Hợp nhất dữ liệu thông minh: chỉ thêm các điểm mới
+      const newPoints = data.points.map(p => ({
+        lat: p.lat,
+        lng: p.lng,
+        t: p.t || Date.now()
+      }));
 
-      // Sắp xếp lại path theo thời gian để đảm bảo thứ tự
+      currentShipment.path = [...currentShipment.path, ...newPoints];
+
+      // Chỉ sắp xếp nếu cần thiết (ví dụ nếu dữ liệu gửi lên bị lộn xộn về thời gian)
+      // Nhưng thường thì Batch đã được sắp xếp sẵn từ Client
       currentShipment.path.sort((a, b) => a.t - b.t);
 
-      const lastPoint = data.points[data.points.length - 1];
+      const lastPoint = newPoints[newPoints.length - 1];
       currentShipment.lat = lastPoint.lat;
       currentShipment.lng = lastPoint.lng;
-      currentShipment.lastUpdate = new Date(lastPoint.t || Date.now());
+      currentShipment.lastUpdate = new Date(lastPoint.t);
 
-      // Phát sóng batch cho các client khác (người nhận) để vẽ cinematic replay
+      // Gửi xác nhận cho Client đã nhận đủ dữ liệu
+      socket.emit('batchSynced', { count: data.points.length });
+
+      // Phát sóng batch cho các client khác (người nhận)
       socket.broadcast.emit('batchLocationUpdated', {
-        batch: data.points,
+        batch: newPoints,
         fullPath: currentShipment.path
       });
     }

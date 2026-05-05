@@ -3,9 +3,11 @@ import Welcome from './components/Welcome';
 import SecurityGate from './components/SecurityGate';
 import Calibration from './components/Calibration';
 import Dashboard from './components/Dashboard';
+import AstroOrder from './components/AstroOrder';
 import MascotDemo from './components/MascotDemo';
 import ShipLove from './components/ShipLove';
 import ShipSimulator from './components/ShipSimulator';
+import OfflineSyncDemo from './components/OfflineSyncDemo';
 import useSound from './hooks/useSound';
 import SoundControl from './components/SoundControl';
 import { sendTelegramMessage } from './utils/telegram';
@@ -15,8 +17,11 @@ function App() {
     const savedStep = localStorage.getItem('appStep');
     // Kiểm tra route hiện tại
     const path = window.location.pathname;
+    const params = new URLSearchParams(window.location.search);
+
     if (path === '/ship-love') return 'ship-love';
     if (path === '/ship-demo') return 'ship-demo';
+    if (path === '/demo' || params.get('mode') === 'demo-sync') return 'demo-sync';
     if (path === '/demo') return 'demo';
 
     // Luôn đưa về calibration nếu đã từng vào, để cập nhật thời tiết thực tế mỗi lần quay lại
@@ -136,7 +141,24 @@ function App() {
         )}
 
         {step === 'dashboard' && (
-          <Dashboard userData={userData} playSFX={play} onReset={resetApp} />
+          <Dashboard 
+            userData={userData} 
+            playSFX={play} 
+            onReset={resetApp} 
+            onOrder={() => setStep('order')} 
+          />
+        )}
+
+        {step === 'order' && (
+          <AstroOrder 
+            nickname={userData?.nickname || TARGET_NAME} 
+            onBack={() => setStep('dashboard')} 
+            playSFX={play} 
+          />
+        )}
+
+        {step === 'demo-sync' && (
+          <OfflineSyncDemo playSFX={play} />
         )}
       </main>
     </div>

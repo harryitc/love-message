@@ -34,8 +34,8 @@ const ShipLove = ({ playSFX }) => {
   const pathRef = useRef(null);
   const watchId = useRef(null);
   const socketRef = useRef(null);
+  const animationTimeoutRef = useRef(null);
 
-  // Thuật toán Haversine để tính khoảng cách giữa 2 điểm
   const getDistance = useCallback((lat1, lon1, lat2, lon2) => {
     const R = 6371e3; // metres
     const φ1 = lat1 * Math.PI/180;
@@ -65,16 +65,11 @@ const ShipLove = ({ playSFX }) => {
 
   const syncOfflineData = useCallback(async () => {
     const points = await getAllGPSPoints();
-    if (points.length > 0) {
+    if (points.length > 0 && socketRef.current?.connected) {
       setIsSyncing(true);
-      if (socketRef.current?.connected) {
-        socketRef.current.emit('syncBatch', { points });
-        await clearGPSPoints();
-        if (playSFX) playSFX('success');
-      }
-      setIsSyncing(false);
+      socketRef.current.emit('syncBatch', { points });
     }
-  }, [playSFX]);
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -86,7 +81,7 @@ const ShipLove = ({ playSFX }) => {
       window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapRef.current);
     }
 
-    if (window.io) {
+    if (window.io && !socketRef.current) {
       socketRef.current = window.io(APP_CONFIG.BACKEND_URL);
 
       socketRef.current.on('shipmentStatus', (data) => {
@@ -102,6 +97,27 @@ const ShipLove = ({ playSFX }) => {
       socketRef.current.on('locationUpdated', (data) => {
         setRecordedPath(data.path || []);
         updateMap(data.lat, data.lng, data.path);
+      });
+
+      socketRef.current.on('batchSynced', async () => {
+        await clearGPSPoints();
+        setIsSyncing(false);
+        if (playSFX) playSFX('success');
+      });
+
+      socketRef.current.on('batchLocationUpdated', (data) => {
+        if (data.batch && data.batch.length > 0) {
+          let i = 0;
+          const animateBatch = () => {
+            if (i >= data.batch.length) return;
+            const point = data.batch[i];
+            setRecordedPath(prev => [...prev, point]);
+            updateMap(point.lat, point.lng);
+            i++;
+            animationTimeoutRef.current = setTimeout(animateBatch, 100);
+          };
+          animateBatch();
+        }
       });
 
       socketRef.current.on('shipmentStarted', (data) => {
@@ -128,21 +144,6 @@ const ShipLove = ({ playSFX }) => {
         markerRef.current = null;
         pathRef.current = null;
       });
-
-      socketRef.current.on('batchLocationUpdated', (data) => {
-        if (data.batch && data.batch.length > 0) {
-          let i = 0;
-          const animateBatch = () => {
-            if (i >= data.batch.length) return;
-            const point = data.batch[i];
-            setRecordedPath(prev => [...prev, point]);
-            updateMap(point.lat, point.lng);
-            i++;
-            setTimeout(animateBatch, 100);
-          };
-          animateBatch();
-        }
-      });
     }
 
     const handleOnline = () => setIsOffline(false);
@@ -152,7 +153,11 @@ const ShipLove = ({ playSFX }) => {
 
     return () => {
       if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
-      if (socketRef.current) socketRef.current.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+      }
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
@@ -194,8 +199,9 @@ const ShipLove = ({ playSFX }) => {
 
         if (!isOffline && socketRef.current?.connected) {
           socketRef.current.emit('updateLocation', newPoint);
-          await clearGPSPoints();
-          await addGPSPoint(newPoint); 
+          // Không xóa ngay ở đây để đảm bảo đồng bộ an toàn, 
+          // có thể để syncOfflineData xử lý hoặc xóa sau khi emit thành công (nếu có ack)
+          // Tuy nhiên, logic chuẩn là đợi Ack. Với điểm đơn lẻ, rủi ro thấp hơn batch.
         }
       }
     }, (err) => console.error(err), { enableHighAccuracy: true, maximumAge: 0 });

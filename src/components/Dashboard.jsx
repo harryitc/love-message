@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish, Satellite, ArrowRight } from 'lucide-react';
+import { Sun, CloudRain, Zap, Cloud, AlertCircle, BookOpen, Heart, Sparkles, X, Mail, Utensils, CloudLightning, Fish, Satellite, ArrowRight, Gift, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { TARGET_NAME, APP_CONFIG } from '../utils/constants';
+import { sendOrderRequest } from '../utils/telegram';
 
 const moods = [
   { 
@@ -187,7 +188,82 @@ const FloatingWords = () => {
   );
 };
 
-const Dashboard = ({ userData, playSFX, onReset }) => {
+const OrderModal = ({ isOpen, onClose, playSFX, nickname }) => {
+  const [value, setValue] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  const handleSubmit = async () => {
+    if (!value.trim()) return;
+    setIsSending(true);
+    const ok = await sendOrderRequest(value, nickname);
+    setIsSending(false);
+    if (ok) {
+      setIsSuccess(true);
+      playSFX('success');
+      setTimeout(() => {
+        setIsSuccess(false);
+        setValue("");
+        onClose();
+      }, 3000);
+    }
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-2 border-pink-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-8 text-white relative">
+              <button onClick={onClose} className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-full transition-colors"><X size={20} /></button>
+              <Gift size={40} className="mb-4 text-pink-200" />
+              <h3 className="text-2xl font-black uppercase tracking-tight">Заказать подарок</h3>
+              <p className="text-pink-100 text-sm font-medium italic">Hôm nay em muốn Mèo máy mang gì tới cho em nào? 🐾</p>
+            </div>
+
+            <div className="p-8 space-y-6">
+              {!isSuccess ? (
+                <>
+                  <textarea 
+                    value={value}
+                    onChange={(e) => setValue(e.target.value)}
+                    placeholder="Ví dụ: Một ly trà sữa nhiều trân châu, hoặc một nụ cười..."
+                    className="w-full h-32 p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-pink-300 outline-none transition-all text-slate-700 font-medium text-sm resize-none"
+                  />
+                  <button 
+                    onClick={handleSubmit}
+                    disabled={isSending || !value.trim()}
+                    className="w-full py-4 bg-pink-500 text-white font-black rounded-2xl shadow-lg shadow-pink-200 flex items-center justify-center gap-2 hover:bg-pink-600 transition-all active:scale-95 disabled:opacity-50 uppercase tracking-widest text-xs"
+                  >
+                    {isSending ? <Loader2 className="animate-spin" size={16} /> : <><Send size={16} /> Gửi yêu cầu cho Cường</>}
+                  </button>
+                </>
+              ) : (
+                <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center py-6 space-y-4">
+                  <div className="w-20 h-20 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto">
+                    <CheckCircle2 size={40} />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-xl font-bold text-slate-800">Đã gửi thành công!</h4>
+                    <p className="text-sm text-slate-500 font-medium">Mèo máy đã báo cho Cường rồi nha. Đợi xíu nhé! 🚀</p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+const Dashboard = ({ userData, playSFX, onReset, onOrder }) => {
   const [selectedMood, setSelectedMood] = useState(null);
   const [russianIndex, setRussianIndex] = useState(0);
   const [showSecret, setShowSecret] = useState(false);
@@ -254,6 +330,23 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
       <FloatingWords />
       <MoodEffects mood={selectedMood?.id} />
       <SecretNote isOpen={showSecret} onClose={() => setShowSecret(false)} nickname={userData?.nickname} />
+      
+      {/* Floating Action Button for Astro-Order */}
+      <motion.button
+        whileHover={{ scale: 1.1, rotate: -10 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => { onOrder(); playSFX('click'); }}
+        className="fixed bottom-8 right-8 z-50 p-5 bg-gradient-to-br from-pink-500 to-purple-600 text-white rounded-full shadow-2xl shadow-pink-300 border-4 border-white flex items-center justify-center group"
+      >
+        <Gift size={28} className="group-hover:animate-bounce" />
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          whileHover={{ opacity: 1, x: 0 }}
+          className="absolute right-20 bg-white px-4 py-2 rounded-xl shadow-lg border border-pink-100 pointer-events-none"
+        >
+          <span className="text-[10px] font-black text-pink-500 uppercase tracking-widest whitespace-nowrap">Order Gift 🎁</span>
+        </motion.div>
+      </motion.button>
       
       <div className="max-w-2xl mx-auto p-4 space-y-8 relative z-10 pt-6 pb-20">
         <header className="text-center space-y-4">
@@ -443,8 +536,9 @@ const Dashboard = ({ userData, playSFX, onReset }) => {
           >
             [ Bắt đầu lại hành trình ]
           </button>
-          <footer className="opacity-60 text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold text-center">
-            Dành tặng riêng cho {TARGET_NAME} &copy; 2026
+          <footer className="mt-12 opacity-60 text-[10px] uppercase tracking-[0.2em] text-slate-600 font-bold text-center flex flex-col gap-2">
+            <p>Dành tặng riêng cho {TARGET_NAME} &copy; 2026</p>
+            <a href="/?mode=demo-sync" className="text-pink-400 hover:underline">Astro-Lab (Dev Mode) 🛠️</a>
           </footer>
         </div>
       </div>
