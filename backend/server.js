@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
 
   socket.on('updateLocation', (data) => {
     if (currentShipment.active) {
-      const now = new Date();
+      const now = data.t ? new Date(data.t) : new Date();
       currentShipment.lat = data.lat;
       currentShipment.lng = data.lng;
       currentShipment.lastUpdate = now;
@@ -50,6 +50,31 @@ io.on('connection', (socket) => {
         lat: data.lat,
         lng: data.lng,
         path: currentShipment.path
+      });
+    }
+  });
+
+  socket.on('syncBatch', (data) => {
+    if (currentShipment.active && data.points && data.points.length > 0) {
+      console.log(`Syncing batch of ${data.points.length} points for ${socket.id}`);
+      
+      data.points.forEach(point => {
+        const t = point.t || Date.now();
+        currentShipment.path.push({ lat: point.lat, lng: point.lng, t });
+      });
+
+      // Sắp xếp lại path theo thời gian để đảm bảo thứ tự
+      currentShipment.path.sort((a, b) => a.t - b.t);
+
+      const lastPoint = data.points[data.points.length - 1];
+      currentShipment.lat = lastPoint.lat;
+      currentShipment.lng = lastPoint.lng;
+      currentShipment.lastUpdate = new Date(lastPoint.t || Date.now());
+
+      // Phát sóng batch cho các client khác (người nhận) để vẽ cinematic replay
+      socket.broadcast.emit('batchLocationUpdated', {
+        batch: data.points,
+        fullPath: currentShipment.path
       });
     }
   });

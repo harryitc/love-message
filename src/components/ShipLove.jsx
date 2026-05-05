@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navigation, Coffee, Heart, Home, ArrowRight, Loader2, MapPin, Send, MessageCircle, Film, CheckCircle2 } from 'lucide-react';
 import { TARGET_NAME, APP_CONFIG } from '../utils/constants';
+import { Navigation, Coffee, Heart, Home, ArrowRight, Loader2, MapPin, Send, MessageCircle, Film, CheckCircle2, Satellite } from 'lucide-react';
 import AstroCat from './AstroCat';
 import MemoryStudio from './MemoryStudio';
+import { addGPSPoint, getAllGPSPoints, clearGPSPoints } from '../utils/db';
 
 // --- Custom Icons for Map ---
-const createCatIcon = () => L.divIcon({
+const createCatIcon = () => window.L ? window.L.divIcon({
   html: `<div class="cat-marker"><img src="/cat-marker.svg" style="width: 40px; height: 40px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));" /></div>`,
   className: 'custom-div-icon',
   iconSize: [40, 40],
   iconAnchor: [20, 40]
-});
+}) : null;
 
 const ShipLove = ({ playSFX }) => {
   const [mode, setMode] = useState('track'); // track or ship
@@ -25,6 +26,8 @@ const ShipLove = ({ playSFX }) => {
   const [error, setError] = useState(null);
   const [mascotState, setMascotState] = useState('idle');
   const [bubbleText, setBubbleText] = useState("");
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const mapRef = useRef(null);
   const markerRef = useRef(null);
@@ -32,75 +35,170 @@ const ShipLove = ({ playSFX }) => {
   const watchId = useRef(null);
   const socketRef = useRef(null);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('mode') === 'ship') setMode('ship');
-
-    if (!mapRef.current) {
-      mapRef.current = L.map('map', { zoomControl: false, attributionControl: false }).setView([21.0285, 105.8542], 15);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapRef.current);
-    }
-
-    socketRef.current = io(APP_CONFIG.BACKEND_URL);
-
-    socketRef.current.on('shipmentStatus', (data) => {
-      if (data.active) {
-        setActiveShipment(data);
-        setRecordedPath(data.path || []);
-        updateMap(data.lat, data.lng, data.path);
-        setMascotState('happy');
-        setBubbleText(`Я еду к тебе! (Anh đang mang ${data.drink} tới cho em đây!) 🐾`);
-      }
-    });
-
-    socketRef.current.on('locationUpdated', (data) => {
-      setRecordedPath(data.path || []);
-      updateMap(data.lat, data.lng, data.path);
-    });
-
-    socketRef.current.on('shipmentStarted', (data) => {
-      setActiveShipment(data);
-      setHasArrived(false);
-      setRecordedPath(data.path || []);
-      updateMap(data.lat, data.lng, data.path);
-      if (playSFX) playSFX('meow');
-    });
-
-    socketRef.current.on('shipmentArrived', (data) => {
-      setHasArrived(true);
-      setRecordedPath(data.path || []);
-      setMascotState('happy');
-      if (playSFX) { playSFX('success'); playSFX('meow'); }
-    });
-
-    socketRef.current.on('shipmentStopped', () => {
-      setActiveShipment(null);
-      setHasArrived(false);
-      setIsRecording(false);
-      if (markerRef.current) markerRef.current.remove();
-      if (pathRef.current) pathRef.current.remove();
-      markerRef.current = null;
-      pathRef.current = null;
-    });
-
-    return () => {
-      if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
-      if (socketRef.current) socketRef.current.disconnect();
-    };
+  // Thuật toán Haversine để tính khoảng cách giữa 2 điểm
+  const getDistance = useCallback((lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; // metres
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // in metres
   }, []);
 
-  const updateMap = (lat, lng, path) => {
-    if (!mapRef.current) return;
+  const updateMap = useCallback((lat, lng, path) => {
+    if (!mapRef.current || !window.L) return;
     const pos = [lat, lng];
-    if (!markerRef.current) markerRef.current = L.marker(pos, { icon: createCatIcon() }).addTo(mapRef.current);
+    if (!markerRef.current) markerRef.current = window.L.marker(pos, { icon: createCatIcon() }).addTo(mapRef.current);
     else markerRef.current.setLatLng(pos);
     
     if (path && path.length > 1) {
       const polyCoords = path.map(p => [p.lat, p.lng]);
-      if (!pathRef.current) pathRef.current = L.polyline(polyCoords, { color: '#ffb6c1', weight: 4, dashArray: '10, 10' }).addTo(mapRef.current);
+      if (!pathRef.current) pathRef.current = window.L.polyline(polyCoords, { color: '#ffb6c1', weight: 4, dashArray: '10, 10' }).addTo(mapRef.current);
       else pathRef.current.setLatLngs(polyCoords);
     }
     mapRef.current.panTo(pos, { animate: true, duration: 1 });
+  }, []);
+
+  const syncOfflineData = useCallback(async () => {
+    const points = await getAllGPSPoints();
+    if (points.length > 0) {
+      setIsSyncing(true);
+      if (socketRef.current?.connected) {
+        socketRef.current.emit('syncBatch', { points });
+        await clearGPSPoints();
+        if (playSFX) playSFX('success');
+      }
+      setIsSyncing(false);
+    }
+  }, [playSFX]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const initialMode = params.get('mode') === 'ship' ? 'ship' : 'track';
+    setMode(initialMode);
+
+    if (!mapRef.current && window.L) {
+      mapRef.current = window.L.map('map', { zoomControl: false, attributionControl: false }).setView([21.0285, 105.8542], 15);
+      window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(mapRef.current);
+    }
+
+    if (window.io) {
+      socketRef.current = window.io(APP_CONFIG.BACKEND_URL);
+
+      socketRef.current.on('shipmentStatus', (data) => {
+        if (data.active) {
+          setActiveShipment(data);
+          setRecordedPath(data.path || []);
+          updateMap(data.lat, data.lng, data.path);
+          setMascotState('happy');
+          setBubbleText(`Я еду к тебе! (Anh đang mang ${data.drink} tới cho em đây!) 🐾`);
+        }
+      });
+
+      socketRef.current.on('locationUpdated', (data) => {
+        setRecordedPath(data.path || []);
+        updateMap(data.lat, data.lng, data.path);
+      });
+
+      socketRef.current.on('shipmentStarted', (data) => {
+        setActiveShipment(data);
+        setHasArrived(false);
+        setRecordedPath(data.path || []);
+        updateMap(data.lat, data.lng, data.path);
+        if (playSFX) playSFX('meow');
+      });
+
+      socketRef.current.on('shipmentArrived', (data) => {
+        setHasArrived(true);
+        setRecordedPath(data.path || []);
+        setMascotState('happy');
+        if (playSFX) { playSFX('success'); playSFX('meow'); }
+      });
+
+      socketRef.current.on('shipmentStopped', () => {
+        setActiveShipment(null);
+        setHasArrived(false);
+        setIsRecording(false);
+        if (markerRef.current) markerRef.current.remove();
+        if (pathRef.current) pathRef.current.remove();
+        markerRef.current = null;
+        pathRef.current = null;
+      });
+
+      socketRef.current.on('batchLocationUpdated', (data) => {
+        if (data.batch && data.batch.length > 0) {
+          let i = 0;
+          const animateBatch = () => {
+            if (i >= data.batch.length) return;
+            const point = data.batch[i];
+            setRecordedPath(prev => [...prev, point]);
+            updateMap(point.lat, point.lng);
+            i++;
+            setTimeout(animateBatch, 100);
+          };
+          animateBatch();
+        }
+      });
+    }
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      if (watchId.current) navigator.geolocation.clearWatch(watchId.current);
+      if (socketRef.current) socketRef.current.disconnect();
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [updateMap, playSFX]);
+
+  useEffect(() => {
+    if (!isOffline && socketRef.current?.connected) {
+      syncOfflineData();
+    }
+  }, [isOffline, syncOfflineData]);
+
+  const startWatching = () => {
+    let lastPoint = null;
+    let lastSaveTime = 0;
+
+    watchId.current = navigator.geolocation.watchPosition(async (position) => {
+      const { latitude, longitude } = position.coords;
+      const now = Date.now();
+      const newPoint = { lat: latitude, lng: longitude, t: now };
+
+      let shouldSave = false;
+      if (!lastPoint) {
+        shouldSave = true;
+      } else {
+        const dist = getDistance(lastPoint.lat, lastPoint.lng, latitude, longitude);
+        if (dist > 10 || (now - lastSaveTime) > 30000) {
+          shouldSave = true;
+        }
+      }
+
+      if (shouldSave) {
+        lastPoint = newPoint;
+        lastSaveTime = now;
+
+        setRecordedPath(prev => [...prev, newPoint]);
+        updateMap(latitude, longitude);
+
+        await addGPSPoint(newPoint);
+
+        if (!isOffline && socketRef.current?.connected) {
+          socketRef.current.emit('updateLocation', newPoint);
+          await clearGPSPoints();
+          await addGPSPoint(newPoint); 
+        }
+      }
+    }, (err) => console.error(err), { enableHighAccuracy: true, maximumAge: 0 });
   };
 
   const startDelivery = () => {
@@ -120,15 +218,7 @@ const ShipLove = ({ playSFX }) => {
           setIsRecording(true);
         }
       } catch (err) { setError("Không thể kết nối tới server."); } finally { setIsStarting(false); }
-    }, (err) => { setError("Vui lòng cho phép truy cập vị trí."); setIsStarting(false); });
-  };
-
-  const startWatching = () => {
-    watchId.current = navigator.geolocation.watchPosition((position) => {
-      const { latitude, longitude } = position.coords;
-      if (socketRef.current) socketRef.current.emit('updateLocation', { lat: latitude, lng: longitude });
-      updateMap(latitude, longitude);
-    }, (err) => console.error(err), { enableHighAccuracy: true, maximumAge: 0 });
+    }, () => { setError("Vui lòng cho phép truy cập vị trí."); setIsStarting(false); });
   };
 
   const openDirections = () => {
@@ -156,7 +246,6 @@ const ShipLove = ({ playSFX }) => {
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-slate-50 flex flex-col">
-      {/* Memory Studio Overlay */}
       <AnimatePresence>
         {showStudio && (
           <MemoryStudio 
@@ -168,7 +257,6 @@ const ShipLove = ({ playSFX }) => {
         )}
       </AnimatePresence>
 
-      {/* Celebration/Summary Overlay (For both) */}
       <AnimatePresence>
         {hasArrived && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[2000] bg-pink-500/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
@@ -206,40 +294,48 @@ const ShipLove = ({ playSFX }) => {
               </div>
             </motion.div>
             
-            {/* Floating Hearts Animation */}
             {[...Array(15)].map((_, i) => (
-              <motion.div key={i} initial={{ y: "100vh", x: Math.random() * 100 + "vw", scale: 0 }} animate={{ y: "-10vh", scale: Math.random() * 1.5 + 0.5, rotate: 360 }} transition={{ duration: 3 + Math.random() * 2, repeat: Infinity, delay: Math.random() * 2 }} className="absolute text-white/40 pointer-events-none"><Heart fill="currentColor" size={Math.random() * 20 + 20} /></motion.div>
+              <motion.div key={i} initial={{ y: "100vh", x: (i * 7) % 100 + "vw", scale: 0 }} animate={{ y: "-10vh", scale: (i % 3) * 0.5 + 0.5, rotate: 360 }} transition={{ duration: 3 + (i % 5), repeat: Infinity, delay: (i % 2) }} className="absolute text-white/40 pointer-events-none"><Heart fill="currentColor" size={20 + (i % 4) * 5} /></motion.div>
             ))}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Top Header */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4 flex justify-between items-center bg-white/60 backdrop-blur-md border-b border-pink-100">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-pink-100 rounded-lg text-pink-500"><Navigation size={20} className={activeShipment?.active ? "animate-pulse" : ""} /></div>
-          <div><h1 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Astro-Tracker</h1><p className="text-[10px] text-pink-500 font-bold uppercase tracking-tighter">{activeShipment?.active ? "Chuyến xe đang chạy..." : "Đang chờ tín hiệu..."}</p></div>
+          <div className={`p-2 rounded-lg ${isOffline ? 'bg-amber-100 text-amber-500' : 'bg-pink-100 text-pink-500'}`}>
+            {isOffline ? <Satellite size={20} className="animate-pulse" /> : <Navigation size={20} className={activeShipment?.active ? "animate-pulse" : ""} />}
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-slate-800 uppercase tracking-widest">
+              {isOffline ? "Chế độ Ngoại tuyến" : "Astro-Tracker"}
+            </h1>
+            <p className="text-[10px] text-pink-500 font-bold uppercase tracking-tighter">
+              {isSyncing ? "Đang đồng bộ dữ liệu..." : activeShipment?.active ? "Chuyến xe đang chạy..." : "Đang chờ tín hiệu..."}
+            </p>
+          </div>
         </div>
         <button onClick={() => window.location.href = '/'} className="p-2 text-slate-400 hover:text-pink-500 transition-colors"><Home size={20} /></button>
       </div>
 
       <div id="map" className="flex-grow z-0" />
 
-      {/* Mascot Interaction Overlay (For Tracker) */}
       {mode === 'track' && activeShipment?.active && (
         <div className="absolute top-20 left-4 right-4 z-[1000] pointer-events-none">
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-4">
             <div className="relative pointer-events-auto">
               <AnimatePresence mode="wait">
-                <motion.div key={bubbleText} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} className="absolute -top-12 left-0 min-w-[150px] bg-white p-3 rounded-2xl shadow-xl border border-pink-100 text-[11px] font-bold text-pink-600 italic">{bubbleText}<div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-white border-r border-b border-pink-100 rotate-45" /></motion.div>
+                <motion.div key={isOffline ? 'offline' : bubbleText} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} className="absolute -top-12 left-0 min-w-[150px] bg-white p-3 rounded-2xl shadow-xl border border-pink-100 text-[11px] font-bold text-pink-600 italic">
+                  {isOffline ? "Sóng yếu quá, Mèo máy đang lưu tạm lộ trình cho em nha! 📡" : bubbleText}
+                  <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-white border-r border-b border-pink-100 rotate-45" />
+                </motion.div>
               </AnimatePresence>
-              <AstroCat state={mascotState} className="w-20 h-20 drop-shadow-2xl" onClick={() => playSFX('meow')} />
+              <AstroCat state={isOffline ? 'thinking' : mascotState} className="w-20 h-20 drop-shadow-2xl" onClick={() => playSFX('meow')} />
             </div>
           </motion.div>
         </div>
       )}
 
-      {/* Control Panel (Bottom) */}
       <div className="absolute bottom-6 left-4 right-4 z-[1000]">
         <AnimatePresence mode="wait">
           {mode === 'ship' ? (
